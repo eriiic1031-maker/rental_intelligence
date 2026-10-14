@@ -752,7 +752,7 @@ HUBS = [
     ("마곡", 37.5600, 126.8330),
 ]
 FEATURE_CATS = ["FD6", "CE7", "BK9", "PO3", "CS2"]
-OFFICE_NAME_RE = re.compile(r"(빌딩|타워|센터|사옥|플라자|프라자|스퀘어|파크|빌|관)$")
+OFFICE_NAME_RE = re.compile(r"(빌딩|타워|센터|사옥|플라자|프라자|스퀘어|파크|빌|관|빌라|아파트|오피스텔|주택|맨션|하우스|타운|캐슬|팰리스|트윈|시티)$")
 EXCLUDE_CAT_PREFIX = ("음식점", "카페", "의료", "교육", "스포츠", "문화", "여행", "숙박", "금융", "가정")
 
 
@@ -764,6 +764,14 @@ def _is_office_like(doc):
     if cat.startswith(EXCLUDE_CAT_PREFIX):
         return False
     return bool(OFFICE_NAME_RE.search(name))
+
+
+def _name_hit(doc, query):
+    """검색어가 장소 이름에 그대로 들어 있으면(음식점·병원 등 제외) 건물로 보여줍니다. 예: 신향빌라"""
+    cat = doc.get("category_name") or ""
+    if cat.startswith(EXCLUDE_CAT_PREFIX):
+        return False
+    return query.replace(" ", "") in (doc.get("place_name") or "").replace(" ", "")
 
 
 def _local_xy(lat0, lon0):
@@ -1006,12 +1014,13 @@ def search(query: str = Query(..., min_length=2), mode: str = Query("full", patt
                     "address": doc.get("address_name"),
                     "road_address": doc.get("road_address_name") or None,
                     "category": doc.get("category_name") or "",
-                    "building": _is_office_like(doc),
+                    "building": _is_office_like(doc) or _name_hit(doc, query),
                     "longitude": float(doc["x"]),
                     "latitude": float(doc["y"]),
                 }
             )
-        out.sort(key=lambda r: not r["building"])
+        qn = query.replace(" ", "")
+        out.sort(key=lambda r: (not r["building"], not (r["name"] or "").replace(" ", "").startswith(qn)))
         return out
 
     def addresses():
