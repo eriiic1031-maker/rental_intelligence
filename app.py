@@ -48,7 +48,9 @@ RONE_KEY = os.getenv("RONE_API_KEY") or os.getenv("REB_API_KEY") or RONE_KEY_HER
 KAKAO_HOST = "https://dapi.kakao.com"
 OVERPASS_URLS = [
     "https://overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
 
 app = FastAPI(title="Rental Intelligence")
@@ -131,21 +133,53 @@ def kakao_get(path, params, timeout=15):
 
 
 def overpass(query):
-    """OpenStreetMap Overpass 조회 (미러 서버 순차 시도 + 24시간 캐시)."""
+    """OpenStreetMap Overpass 조회.
+    미러 서버 여러 곳에 동시에 요청해서 가장 먼저 성공한 결과를 씁니다(한 곳이 느려도 안 막힘).
+    성공 결과는 24시간 캐시하고, 모두 실패하면 예전에 성공했던 결과(있다면)를 대신 돌려줍니다."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    key = ("overpass", query)
+
+    def one(url):
+        r = requests.post(url, data={"data": query}, timeout=(5, 28),
+                          headers={"User-Agent": "RentalIntelligence/5 (internal lease analysis)"})
+        if not r.ok:
+            raise RuntimeError(f"HTTP {r.status_code}")
+        j = r.json()
+        if not isinstance(j, dict) or "elements" not in j:
+            raise RuntimeError("응답 형식 오류")
+        return j
 
     def run():
-        last = "알 수 없는 오류"
-        for url in OVERPASS_URLS:
+        errs = []
+        ex = ThreadPoolExecutor(max_workers=len(OVERPASS_URLS))
+        try:
+            futs = {ex.submit(one, u): u for u in OVERPASS_URLS}
             try:
-                r = http.post(url, data={"data": query}, timeout=35)
-                if r.ok:
-                    return r.json()
-                last = f"HTTP {r.status_code}"
-            except (requests.RequestException, ValueError) as e:
-                last = str(e)
-        raise HTTPException(502, f"OpenStreetMap 데이터 조회 실패({last}). 잠시 후 다시 시도하세요.")
+                for f in as_completed(futs, timeout=32):
+                    try:
+                        return f.result()
+                    except Exception as e:
+                        errs.append(f"{futs[f].split('/')[2]}: {e}")
+            except Exception:
+                errs.append("시간 초과")
+        finally:
+            ex.shutdown(wait=False, cancel_futures=True)
+        with _cache_lock:
+            old = _stale.get(key)
+        if old is not None:
+            return old
+        raise HTTPException(502, "OpenStreetMap 서버가 지금 모두 바쁩니다. 1~2분 뒤 다시 시도하세요. (" + "; ".join(errs[:2]) + ")")
 
-    return cached(("overpass", query), 86400, run)
+    def producer():
+        v = run()
+        with _cache_lock:
+            _stale[key] = v
+        return v
+
+    return cached(key, 86400, producer)
+
+
+_stale: dict = {}
 
 
 # ──────────────────────────────────────────────────────────────
