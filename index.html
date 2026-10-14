@@ -1,0 +1,2248 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rental Intelligence</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --ink:#17211d; --muted:#5d6963; --line:#e2e8e4; --paper:#f7f9f6; --dark:#1b2822;
+  --lime:#03c75a; --lime-deep:#02a84c; --sun:#e0a11b; --blue:#2f7fa3; --warn:#b42318;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-family:"Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:var(--paper);font-size:13px}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--lime-deep);outline-offset:2px}
+
+.topbar{height:56px;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.brand{font-size:16px;font-weight:800;letter-spacing:-.2px}
+.brand span{color:var(--lime)}
+.keys{display:flex;gap:8px;font-size:11px}
+.keys i{font-style:normal;padding:3px 9px;border-radius:99px;background:#2b3a33;color:#cfd9d3}
+.keys i.ok{background:#32491f;color:var(--lime)}
+.keys i.bad{background:#4d2a26;color:#ffb4a8}
+
+.layout{display:grid;grid-template-columns:430px minmax(0,1fr);height:calc(100vh - 56px);min-height:600px}
+.sidebar{overflow:auto;background:#fff;border-right:1px solid var(--line);z-index:500}
+.pad{padding:18px}
+h1{font-size:20px;line-height:1.3;margin:0 0 6px;letter-spacing:-.4px}
+.intro{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 14px}
+
+input,select{min-width:0;width:100%;border:1px solid #d5ddd8;border-radius:9px;padding:9px 11px;font-size:13px;background:#fff;color:var(--ink)}
+input:focus,select:focus{border-color:#03c75a;outline:none}
+button{border:0;border-radius:9px;background:var(--dark);color:#fff;padding:9px 13px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap}
+button:hover{filter:brightness(1.15)}
+button:disabled{opacity:.5;cursor:wait}
+.btn-lime{background:var(--lime);color:var(--dark)}
+.btn-ghost{background:#eef2ee;color:var(--ink)}
+.btn-sm{padding:5px 9px;font-size:11px}
+.wide{width:100%;margin-top:10px}
+.row{display:flex;gap:7px;align-items:center}
+.row>*{flex:0 1 auto}.row>input,.row>select{flex:1 1 0}
+
+.results{display:grid;gap:6px;margin-top:8px}
+.result{padding:9px 10px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:12px;line-height:1.45}
+.result:hover,.result.active{border-color:#03c75a;background:#effaf3}
+.result small{display:block;color:var(--muted);margin-top:2px}
+.hint{font-size:11px;line-height:1.55;color:var(--muted);margin-top:6px}
+.err{color:var(--warn)}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 18px 14px}
+.kpi{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff}
+.kpi .name{font-size:11px;color:var(--muted);margin-bottom:6px}
+.kpi .value{font-size:19px;font-weight:800;letter-spacing:-.6px}
+.kpi .unit{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
+.kpi .sub{font-size:10.5px;color:var(--muted);margin-top:3px}
+
+.tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}
+.tabs button{flex:1;background:none;color:var(--muted);border-radius:0;padding:11px 2px;border-bottom:2px solid transparent;font-weight:700;font-size:11.5px}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--lime-deep)}
+.panel{padding:16px 18px 30px}
+.panel h2{font-size:14px;margin:0 0 4px}
+.panel .desc{font-size:11.5px;line-height:1.6;color:var(--muted);margin:0 0 12px}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.fields label,.lbl{font-size:11px;color:var(--muted);display:block;margin-bottom:4px}
+.span2{grid-column:1/-1}
+.notice{background:#f3f8f5;border:1px solid #dcebe2;border-radius:9px;padding:9px 10px;font-size:11px;line-height:1.55;color:#3d5247;margin-top:10px}
+.notice.warn{background:#fff6f4;border-color:#f3d5cf;color:#7a2d22}
+.status{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;min-height:16px}
+
+.out{border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-top:12px;font-size:12px;line-height:1.7}
+.out b{font-weight:700}
+.out .big{font-size:18px;font-weight:800;letter-spacing:-.5px}
+
+.card{border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-top:8px;cursor:pointer}
+.card:hover,.card.active{border-color:#03c75a;background:#effaf3}
+.card .t{font-weight:700;font-size:13px}
+.card .m{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.55}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#fdf0cf;color:#7a5a00;margin-left:4px;font-weight:700;vertical-align:1px}
+.tag.ok{background:#d3f1e0;color:#0b6b34}
+
+/* 일조 */
+.sunbar{display:flex;gap:6px;margin:8px 0}
+.sunbar button{flex:1}
+.timeline{display:flex;align-items:center;gap:8px;margin-top:10px}
+.timeline input[type=range]{padding:0;border:0;accent-color:var(--lime-deep)}
+.timeline output{min-width:44px;font-weight:700;font-variant-numeric:tabular-nums}
+.suninfo{font-size:12px;margin-top:6px;color:var(--ink)}
+table.heat{border-collapse:separate;border-spacing:2px;margin-top:10px;font-size:10px;width:100%;table-layout:fixed}
+table.heat th{font-weight:600;color:var(--muted);padding:0;height:16px}
+table.heat th.rl{text-align:left;width:34px;font-size:11px;color:var(--ink)}
+table.heat td{height:22px;border-radius:3px;text-align:center;padding:0;color:#5d4a10}
+table.heat td.sum{background:none;font-weight:700;font-size:11px;color:var(--ink);width:44px;text-align:right}
+table.heat td.na{background:#f1f3f2}
+table.heat td.night{background:#e6ebee;color:#8795a0}
+.legend-bar{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted);margin-top:8px}
+.legend-bar span.sw{width:60px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(224,161,27,.12),rgba(224,161,27,1))}
+
+/* 상권 / 유동 */
+.bars{display:grid;gap:5px;margin-top:10px}
+.bar{display:grid;grid-template-columns:62px 1fr 38px;align-items:center;gap:8px;font-size:11.5px}
+.bar .track{height:9px;background:#eef2ee;border-radius:5px;overflow:hidden}
+.bar .fill{height:100%;background:var(--lime-deep);border-radius:5px}
+.bar .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;color:#fff;font-weight:700;font-size:12px}
+.fc{display:flex;align-items:flex-end;gap:3px;height:96px;margin-top:10px}
+.fc div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:9.5px;color:var(--muted)}
+.fc i{display:block;width:100%;border-radius:3px 3px 0 0;min-height:2px}
+.sep{height:1px;background:var(--line);margin:18px 0}
+
+/* 상권 범위·업소 */
+.ring-label{position:absolute;transform:translate(-50%,-50%);background:#fff;border:1px solid #03c75a;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap;color:#0b6b34;pointer-events:none}
+.bar.click{cursor:pointer;border-radius:6px;padding:2px 4px;margin:0 -4px}
+.bar.click:hover{background:#effaf3}
+.bar.click.on{background:#e3f6ea;font-weight:700}
+.bar.click.on .num::after{content:' ●';color:var(--lime-deep)}
+.bar{grid-template-columns:84px 1fr 38px!important}
+.cdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+/* 유사 건물 */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:99px;padding:5px 10px;font-size:11.5px;cursor:pointer;margin:0;color:var(--ink)}
+.chip input{width:auto;margin:0;accent-color:var(--lime-deep)}
+.chip:has(input:checked){background:#e3f6ea;border-color:#03c75a;font-weight:700}
+.wrow{display:grid;grid-template-columns:70px 1fr 18px;gap:8px;align-items:center;font-size:11.5px;margin:4px 0}
+.wrow input{padding:0;border:0;accent-color:var(--lime-deep)}
+.score{display:inline-block;min-width:34px;text-align:center;border-radius:99px;padding:1px 8px;font-weight:800;font-size:12px;color:#fff;margin-right:6px}
+.rk{position:absolute;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px #0004}
+.rk.me{background:var(--dark);color:var(--lime)}
+.sq-ring{width:14px;height:10px;border:2px dashed #02a84c;border-radius:50%;background:#03c75a33}
+/* 비교 */
+.cmp{display:grid;gap:4px;margin-top:6px}
+.cmprow{display:grid;grid-template-columns:96px 1fr 74px;gap:8px;align-items:center;font-size:11.5px;cursor:pointer;padding:3px 0}
+.cmprow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmprow .track{height:12px;background:#eef2ee;border-radius:6px;overflow:hidden}
+.cmprow .fill{height:100%;background:#b9c4bd}
+.cmprow.mine .fill{background:var(--lime-deep)}
+.cmprow.mine .nm{font-weight:800}
+.cmprow .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat div{border:1px solid var(--line);border-radius:9px;padding:8px 9px}
+.stat small{display:block;color:var(--muted);font-size:10.5px;margin-bottom:3px}
+.stat b{font-size:14px;letter-spacing:-.3px}
+.up{color:var(--warn)}.down{color:#2f7a3d}
+
+/* ───── v6: 색 토큰 (내 건물 = 주황, 시장·비교 = 파랑 램프) ───── */
+:root{--mkt:#2a78d6;--me:#eb6834;--r250:#86b6ef;--r450:#2a78d6;--r600:#184f95;--track:#dbe7f8}
+.tabs{overflow-x:auto;scrollbar-width:thin}
+.tabs button{flex:1 0 auto;padding:11px 10px}
+
+/* 검색 자동완성 */
+.row>.ac-wrap{flex:1 1 0;position:relative;min-width:0}
+.ac{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:11px;box-shadow:0 10px 28px #1c2a2222;z-index:900;max-height:340px;overflow:auto;padding:4px}
+.ac-item{padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12px;line-height:1.4}
+.ac-item[aria-selected=true],.ac-item:hover{background:#f1f8e4}
+.ac-item b{font-size:13px}
+.ac-item small{display:block;color:var(--muted);margin-top:1px}
+.ac-grp{font-size:10.5px;color:var(--muted);padding:7px 10px 2px;font-weight:700}
+.btag{display:inline-block;font-size:10px;padding:0 6px;border-radius:99px;background:#d3f1e0;color:#0b6b34;font-weight:700;margin-left:6px;vertical-align:1px}
+.result b{font-size:13px}
+.res-grp{font-size:10.5px;color:var(--muted);font-weight:700;margin:8px 0 -2px}
+
+/* 판정 칩 */
+.verdict{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 12px}
+.vchip{font-size:11.5px;font-weight:700;border-radius:99px;padding:4px 10px;background:#f1f4f2;color:var(--ink);border:1px solid var(--line)}
+.vchip.hi{background:#fdeceb;color:#9c2a1f;border-color:#f3cdc8}
+.vchip.lo{background:#e8f4ea;color:#256a35;border-color:#c5e3cb}
+
+/* 차트 공통 */
+.chart{position:relative;margin-top:10px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:inherit;fill:var(--muted);font-size:10px}
+.chart text.st{fill:var(--ink);font-weight:700}
+.chart .grid{stroke:#e9eeea;stroke-width:1}
+.chart .axis{stroke:#c9d2cc;stroke-width:1}
+.ctitle{font-size:11.5px;font-weight:700;margin:16px 0 0;color:var(--ink)}
+.csub{font-size:10.5px;color:var(--muted);margin-top:1px}
+.tt{position:absolute;pointer-events:none;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 6px 20px #1c2a2226;padding:7px 9px;font-size:11px;line-height:1.55;white-space:nowrap;z-index:5;transform:translate(-50%,-100%);margin-top:-10px}
+.tt b{font-weight:700}
+.kdot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.kline{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.clegend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:var(--muted);margin-top:6px}
+details.tv{margin-top:6px;font-size:11px;color:var(--muted)}
+details.tv summary{cursor:pointer}
+details.tv table{width:100%;border-collapse:collapse;margin-top:6px;font-variant-numeric:tabular-nums}
+details.tv th,details.tv td{border-bottom:1px solid var(--line);padding:3px 6px;text-align:right}
+details.tv th:first-child,details.tv td:first-child{text-align:left}
+
+/* 지표 타일·히어로 */
+.hero{font-size:48px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin:4px 0 2px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.tile{border:1px solid var(--line);border-radius:11px;padding:9px 10px;min-width:0}
+.tile small{display:block;color:var(--muted);font-size:10.5px}
+.tile b{font-size:17px;letter-spacing:-.5px;display:block;margin:2px 0}
+.tile em{font-style:normal;font-size:10.5px;font-weight:700}
+.tile svg{width:100%;height:28px;display:block;margin-top:5px;overflow:visible}
+
+/* 비용 구성 / 미터 */
+.stack{display:flex;gap:2px;height:30px;margin-top:8px}
+.stack span{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;border-radius:4px;min-width:6px}
+.m3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.m3 div{font-size:10px;color:var(--muted)}
+.m3 .tr{height:6px;border-radius:3px;background:var(--track);margin-top:3px}
+.m3 .tr i{display:block;height:100%;background:var(--mkt);border-radius:3px}
+table.sens{width:100%;border-collapse:separate;border-spacing:2px;margin-top:6px;font-size:11px;font-variant-numeric:tabular-nums}
+table.sens td,table.sens th{padding:5px 4px;text-align:center;border-radius:5px;background:#f4f7f5}
+table.sens th{font-weight:600;color:var(--muted);background:none}
+table.sens td.cur{background:#fdeee7;font-weight:800}
+
+/* 지도 위 NOC 라벨 */
+.npill{position:absolute;transform:translate(-50%,-50%);background:#fff;border:2px solid #8a948f;border-radius:99px;padding:1px 7px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 1px 5px #0003;color:var(--ink)}
+.npill.hi{border-color:#d03b3b}
+.npill.lo{border-color:var(--mkt)}
+.cmprow .fill{background:#86b6ef}
+.cmprow.mine .fill{background:var(--me)}
+
+.negbox{border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-top:10px;font-size:12px;line-height:1.75}
+.negbox .row2{display:flex;justify-content:space-between;gap:8px}
+.negbox .row2 b{font-variant-numeric:tabular-nums}
+.negbox .big{font-size:18px;font-weight:800;letter-spacing:-.5px}
+.btn-x{background:none;color:var(--muted);padding:0 0 0 6px;font-size:13px;line-height:1}
+.chip.hist{cursor:default}
+
+/* 인쇄 리포트 */
+#report{display:none}
+#report h1{font-size:22px;margin:0 0 4px}
+#report h2{font-size:14px;margin:18px 0 6px;border-bottom:1px solid #cfd8d2;padding-bottom:3px}
+#report table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+#report th,#report td{border-bottom:1px solid #e2e8e4;padding:4px 6px;text-align:right}
+#report th:first-child,#report td:first-child{text-align:left}
+#report .kv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+#report .kv div{border:1px solid #e2e8e4;border-radius:8px;padding:6px 8px;font-size:11px}
+#report .kv b{display:block;font-size:15px}
+#report .foot{font-size:10px;color:#5d6963;line-height:1.6;margin-top:16px}
+@media print{
+  body.printing{background:#fff}
+  body.printing .topbar,body.printing .layout{display:none!important}
+  body.printing #report{display:block;padding:14px 18px}
+  #report svg{max-width:100%}
+  #report .chart text{fill:#5d6963}
+  @page{margin:12mm}
+}
+
+.ac-wrap{position:relative}
+.tabs button{font-size:11.5px}
+.panel details.tv{margin-top:14px}
+.panel details.tv summary{font-weight:700;color:var(--ink)}
+.chart .plot{position:relative}
+.tt[hidden]{display:none}
+
+textarea{width:100%;border:1px solid #d5ddd8;border-radius:9px;padding:9px 11px;font:inherit;font-size:13px;resize:vertical;color:var(--ink)}
+textarea:focus{border-color:#03c75a;outline:none}
+/* 지도 */
+.map-wrap{position:relative;min-width:0;min-height:0}
+#map{width:100%;height:100%;background:#e8eee8}
+.map-chip{position:absolute;z-index:400;top:14px;left:14px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 13px;box-shadow:0 4px 18px #1c2a2215;max-width:calc(100% - 32px)}
+.map-chip strong{display:block;font-size:13px;margin-bottom:3px}
+.map-chip span{font-size:11px;color:var(--muted)}
+.map-legend{position:absolute;z-index:400;right:14px;bottom:24px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:11px}
+.lg{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;border:2px solid}
+.dot.sel{background:#d5ed75;border-color:#526c22}
+.dot.st{background:#75c9ed;border-color:#22526c}
+.dot.en{background:#e9eff0;border-color:#63746d}
+.dot.cp{background:#e2c9f3;border-color:#6b3f8a}
+.sq{width:11px;height:11px;border-radius:2px;background:#2b3a44;opacity:.45}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;height:auto}
+  .sidebar{overflow:visible;border-right:0;border-bottom:1px solid var(--line)}
+  .map-wrap{height:62vh;min-height:420px}
+  .keys{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ───── v7: 밝은 지도앱 스타일 ───── */
+:root{--dark:#1f2933;--lime:#03c75a;--lime-deep:#02a84c;--paper:#f4f6f8;--line:#e5e8eb;--red:#e5322d}
+body{background:var(--paper)}
+.topbar{background:#fff;color:var(--dark);border-bottom:1px solid var(--line);height:54px}
+.brand{font-size:18px;letter-spacing:-.4px}.brand span{color:#03c75a}
+.keys i{background:#f1f3f5;color:#5d6963}.keys i.ok{background:#e3f6ea;color:#0b6b34}.keys i.bad{background:#fdecec;color:#b42318}
+.layout{height:calc(100vh - 54px);grid-template-columns:440px minmax(0,1fr)}
+.sidebar{box-shadow:2px 0 14px #0000000f}
+.btn-lime{background:#03c75a;color:#fff}
+button:hover{filter:brightness(1.08)}
+.btn-ghost{background:#eef1f3}
+#addressQuery{border:2px solid #03c75a;border-radius:12px;padding:11px 14px;font-size:14px}
+#searchBtn{background:#03c75a;border-radius:12px;padding:0 18px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 12px;overflow:visible;border-top:0}
+.tabs button{flex:none;border:1px solid var(--line);border-radius:11px;background:#fff;padding:7px 2px;font-size:11.5px;line-height:1.3;color:#3b4650}
+.tabs button .ic{display:block;font-size:17px;margin-bottom:1px}
+.tabs button[aria-selected=true]{background:#03c75a;color:#fff;border-color:#03c75a}
+.kpis{padding:12px 18px 12px}
+.kpi.hl{grid-column:1/-1;background:#f0fbf4;border-color:#03c75a}
+.kpi.hl .value{font-size:22px;letter-spacing:-.8px}
+.kpi.hl .sub{font-size:12px;color:#0b6b34;font-weight:600}
+.card.active,.card:hover{border-color:#03c75a;background:#f0fbf4}
+#simOut .card.active,#cList .card.focus,#aiOut .card:hover{border-color:var(--red);background:#fff5f4}
+.cmprow.focus{background:#fdecec;border-radius:6px}
+.map-chip{border-left:5px solid var(--red);border-radius:12px;padding:11px 15px;box-shadow:0 4px 18px #00000026;left:14px;top:14px}
+.map-chip strong{font-size:16px;letter-spacing:-.3px;margin-bottom:4px}
+.map-chip span{display:block;font-size:12px;line-height:1.55;color:#4b5660}
+.pin{position:absolute;left:-14px;top:-33px;width:28px;height:28px;border-radius:50% 50% 50% 0;background:#e5322d;border:3px solid #fff;box-shadow:0 2px 8px #0000006e;transform:rotate(-45deg)}
+.pin::after{content:"";position:absolute;left:7px;top:7px;width:8px;height:8px;border-radius:50%;background:#fff}
+.leaflet-tooltip.tgt{background:#e5322d;color:#fff;border:0;font-weight:800;font-size:12px;padding:3px 9px;box-shadow:0 2px 8px #0000004d}
+.leaflet-tooltip.tgt::before{border-top-color:#e5322d}
+.leaflet-tooltip.stn{background:#1f6feb;color:#fff;border:0;font-weight:800;font-size:12px;padding:3px 9px}
+.leaflet-tooltip.stn::before{border-top-color:#1f6feb}
+.pl-h{font-weight:800;font-size:12.5px;margin:12px 0 5px}.pl-h span{font-weight:500;color:var(--muted);font-size:11px;margin-left:4px}
+.pl-list{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.pl-i{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid #f0f2f4;cursor:pointer;font-size:12px}
+.pl-i:last-child{border-bottom:0}.pl-i:hover,.pl-i:focus-visible{background:#f0fbf4}
+.pl-i b{font-weight:600}.pl-i small{color:var(--muted);white-space:nowrap}
+.map-legend{left:14px;right:auto;bottom:24px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(4,1fr)}}
+
+.ktip{padding:3px 9px;border-radius:6px;font-weight:800;font-size:12px;color:#fff;white-space:nowrap;box-shadow:0 2px 8px #0000004d}
+.ktip.tgt{background:#e5322d}.ktip.stn{background:#1f6feb}
+.ktip.light{background:#fff;color:#1f2933;border:1px solid #d5ddd8;font-weight:600}
+.engine-btn{position:absolute;z-index:450;right:14px;bottom:24px;background:#fff;color:#1f2933;border:1px solid var(--line);box-shadow:0 2px 10px #0000002b;border-radius:10px;padding:8px 12px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Rental <span>Intelligence</span></div>
+  <div class="keys" id="keys"><i>서버 확인 중</i></div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="pad">
+    <h1>임대차 건물, 비용과 입지를 함께 봅니다</h1>
+    <p class="intro">건물명이나 주소로 검색하면 NOC, 권역 시세, 역까지 도보, 시간대별 일조, 상권과 유동인구를 한 화면에서 확인하고 주변 임대 건물과 비교할 수 있습니다.</p>
+    <div class="row">
+      <div class="ac-wrap"><input id="addressQuery" value="" placeholder="건물명 또는 주소 (예: 롯데월드타워, 을지로 ○○빌딩)" aria-label="건물명 또는 주소 검색" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="acMain"><div class="ac" id="acMain" role="listbox" hidden></div></div>
+      <button id="searchBtn">검색</button>
+    </div>
+    <div id="searchResults" class="results"></div>
+    <div id="appStatus" class="status"></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi hl span2k"><div class="name">🚇 가장 가까운 역</div><div class="value" id="kStation">건물을 검색하세요</div><div class="sub" id="kWalk">검색하면 자동으로 찾아 표시합니다</div></div>
+    <div class="kpi"><div class="name">명목 NOC</div><div class="value" id="kNominal">—</div><div class="sub" id="kNominalSub"></div></div>
+    <div class="kpi"><div class="name">실효 NOC</div><div class="value" id="kEffective">—</div><div class="sub">렌트프리·인상 반영</div></div>
+    <div class="kpi"><div class="name">입면 평균 직사광</div><div class="value" id="kSun">—</div><div class="sub" id="kSunSub">일조 탭에서 분석</div></div>
+  </div>
+
+  <div class="verdict" id="verdict" hidden></div>
+
+  <div class="tabs" role="tablist" aria-label="분석 항목">
+    <button role="tab" aria-selected="true" data-tab="noc"><span class="ic">💰</span>NOC</button>
+    <button role="tab" aria-selected="false" data-tab="market"><span class="ic">📈</span>시세</button>
+    <button role="tab" aria-selected="false" data-tab="access"><span class="ic">🚇</span>역 접근</button>
+    <button role="tab" aria-selected="false" data-tab="sun"><span class="ic">☀️</span>일조</button>
+    <button role="tab" aria-selected="false" data-tab="area"><span class="ic">🏪</span>상권·유동</button>
+    <button role="tab" aria-selected="false" data-tab="similar"><span class="ic">🏢</span>유사 건물</button>
+    <button role="tab" aria-selected="false" data-tab="comp"><span class="ic">⚖️</span>비교</button>
+    <button role="tab" aria-selected="false" data-tab="ai"><span class="ic">✨</span>AI 질문</button>
+  </div>
+
+  <!-- NOC -->
+  <section class="panel" data-panel="noc">
+    <h2>현재 임차 건물 NOC</h2>
+    <p class="desc">임차 중인 건물을 먼저 고른 뒤 계약 조건을 입력하세요. 선택한 건물이 지도의 빨간 건물이 되고, 역·상권·일조·시세 분석이 이 건물 기준으로 연결됩니다. 입력값은 저장되어 다음에 열어도 그대로 나옵니다.</p>
+    <div class="ac-wrap" style="margin-bottom:12px"><label class="lbl" for="homeBld">임차 건물 (건물명 또는 주소)</label><input id="homeBld" placeholder="건물명을 입력하고 목록에서 선택" autocomplete="off"><div class="ac" id="acHome" hidden></div><div id="homeInfo" class="hint">아직 선택한 건물이 없습니다.</div></div>
+    <div class="fields">
+      <div><label for="rent">월 임대료 (원)</label><input id="rent" type="number" min="0" value="15000000"></div>
+      <div><label for="fee">월 관리비 (원)</label><input id="fee" type="number" min="0" value="3500000"></div>
+      <div><label for="deposit">보증금 (원)</label><input id="deposit" type="number" min="0" value="100000000"></div>
+      <div><label for="rate">보증금 연 환산율 (%)</label><input id="rate" type="number" min="0" step="0.1" value="12"></div>
+      <div><label for="areaLease">임대면적 (㎡)</label><input id="areaLease" type="number" min="0.01" step="0.01" value="500"></div>
+      <div><label for="areaEx">전용면적 (㎡)</label><input id="areaEx" type="number" min="0.01" step="0.01" value="300"></div>
+      <div><label for="term">계약기간 (개월)</label><input id="term" type="number" min="1" value="36"></div>
+      <div><label for="free">렌트프리 (개월)</label><input id="free" type="number" min="0" value="0"></div>
+      <div><label for="esc">임대료 연 인상률 (%)</label><input id="esc" type="number" min="0" step="0.1" value="3"></div>
+      <div><label for="basis">NOC 나누는 면적</label><select id="basis"><option value="lease">임대면적</option><option value="ex">전용면적</option></select></div>
+      <div class="span2"><label for="unit">표시 단위</label><select id="unit"><option value="m2">원/㎡·월</option><option value="py">원/평·월 (1평 = 3.3058㎡)</option></select></div>
+    </div>
+    <button class="wide btn-lime" id="calcBtn">NOC 계산</button>
+    <div id="calcOut" class="out" hidden></div>
+    <div id="nocViz"></div>
+    <div class="lbl" style="margin-top:16px">분기별 NOC 이력 <span style="font-weight:400">(시세 탭 그래프에 점으로 표시)</span></div>
+    <div class="chips" id="histChips"></div>
+    <div class="row"><button class="btn-ghost btn-sm" id="histSave">이번 분기 값 저장</button><button class="btn-ghost btn-sm" id="reportBtn">리포트 인쇄 / PDF</button></div>
+    <div class="notice">NOC의 정의는 회사마다 다릅니다. 이 계산은 (임대료 + 관리비 + 보증금 환산액) ÷ 면적이며, 관리비는 인상하지 않고 렌트프리 기간에도 납부하는 것으로 가정합니다.</div>
+  </section>
+
+  <!-- 시세 -->
+  <section class="panel" data-panel="market" hidden>
+    <h2>권역 시세와 내 NOC</h2>
+    <p class="desc">한국부동산원 R-ONE이 분기마다 공표하는 권역별 오피스 임대료·공실률·임대가격지수와 내 NOC를 비교합니다. 공공통계는 건물 계약 단위 NOC와 정의가 다르므로, 아래에서 비교 기준을 맞춰 보세요.</p>
+    <label class="lbl" for="mRegion">비교할 권역 (선택한 건물의 구 기준으로 자동 선택, 직접 바꿀 수 있음)</label>
+    <select id="mRegion"></select>
+    <div class="lbl" style="margin-top:12px">내 NOC를 어떤 정의로 비교할까요</div>
+    <div class="chips">
+      <label class="chip"><input type="checkbox" id="mFee"> 관리비 포함</label>
+      <label class="chip"><input type="checkbox" id="mDep"> 보증금 환산 포함</label>
+      <label class="chip"><input type="checkbox" id="mEff"> 렌트프리·인상 반영</label>
+    </div>
+    <select id="mArea" aria-label="나누는 면적"><option value="lease">임대면적으로 나눔</option><option value="ex">전용면적으로 나눔</option></select>
+    <div class="hint">부동산원 임대료는 3층~최상층 기준 ㎡당 월 환산 값입니다. 관리비·보증금 처리와 면적 기준은 R-ONE 통계 설명에서 확인해 맞추세요. 기본값은 월 임대료만 임대면적으로 나눈 값입니다.</div>
+    <button class="wide btn-lime" id="mLoad">시세 불러오기</button>
+    <div id="mStatus" class="status">서버 .env에 RONE_API_KEY가 있으면 불러올 수 있습니다.</div>
+    <div id="mOut"></div>
+
+    <div class="sep"></div>
+    <h2>협상 시뮬레이터</h2>
+    <p class="desc">목표 NOC에 맞추려면 월 임대료를 얼마로 낮춰야 하는지, 같은 효과를 렌트프리 몇 개월로 받을 수 있는지 계산합니다.</p>
+    <label class="lbl" for="negCustom">직접 정한 목표 실효 NOC (표시 단위, 선택)</label>
+    <input id="negCustom" type="number" min="0" placeholder="예: 18000">
+    <div id="mNeg"></div>
+
+    <details class="tv" id="mSetup"><summary>통계표 설정 · 직접 입력</summary>
+      <div class="hint">통계표는 이름으로 자동 탐색합니다. 맞지 않으면 통계표 ID를 직접 지정하세요. (.env의 RONE_RENT_ID / RONE_VACANCY_ID / RONE_INDEX_ID로 고정할 수도 있습니다.)</div>
+      <div class="fields" style="margin-top:8px">
+        <div><label for="idRent">임대료 통계표 ID</label><input id="idRent" placeholder="자동 탐색"></div>
+        <div><label for="idVac">공실률 통계표 ID</label><input id="idVac" placeholder="자동 탐색"></div>
+        <div class="span2"><label for="idIdx">임대가격지수 통계표 ID</label><input id="idIdx" placeholder="자동 탐색"></div>
+      </div>
+      <div class="row" style="margin-top:8px"><input id="tblQ" placeholder="통계표 이름 검색 (예: 오피스 임대)"><button class="btn-ghost btn-sm" id="tblBtn">검색</button></div>
+      <div id="tblOut" class="results"></div>
+      <button class="btn-ghost btn-sm" id="idSave" style="margin-top:8px">ID 적용 후 다시 불러오기</button>
+      <div class="fields" style="margin-top:12px"><div class="span2"><label for="mManual">직접 입력한 권역 시세 (표시 단위, 월) — API 없이 비교할 때</label><input id="mManual" type="number" min="0" placeholder="리서치 리포트의 권역 평균 임대료"></div></div>
+      <div id="mDisc" class="hint"></div>
+    </details>
+  </section>
+
+  <!-- 역 접근 -->
+  <section class="panel" data-panel="access" hidden>
+    <h2>지하철역 접근성</h2>
+    <p class="desc">가까운 역 3곳까지 카카오 도보 경로로 거리와 시간을 계산합니다. OpenStreetMap에 출입구가 등록된 역은 건물에서 가까운 출입구까지, 없으면 역 중심점까지 계산합니다.</p>
+    <button class="wide btn-lime" id="accessBtn" style="margin-top:0">역·출입구 분석</button>
+    <div id="accessStatus" class="status">건물을 먼저 검색해 선택하세요.</div>
+    <div id="accessList"></div>
+  </section>
+
+  <!-- 일조 -->
+  <section class="panel" data-panel="sun" hidden>
+    <h2>시간대별 일조·그림자</h2>
+    <p class="desc">OpenStreetMap 건물 외곽선과 높이로 태양 위치를 계산해, 선택 건물의 각 방향 외벽에 직사광이 닿는 시간대를 추정합니다.</p>
+    <div class="fields">
+      <div><label for="sunDate">날짜</label><input id="sunDate" type="date"></div>
+      <div><label for="floor">확인할 층</label><input id="floor" type="number" min="1" max="80" value="5"></div>
+    </div>
+    <div class="sunbar">
+      <button class="btn-ghost btn-sm" data-date="today">오늘</button>
+      <button class="btn-ghost btn-sm" data-date="03-21">춘분</button>
+      <button class="btn-ghost btn-sm" data-date="06-21">하지</button>
+      <button class="btn-ghost btn-sm" data-date="12-21">동지</button>
+    </div>
+    <button class="wide btn-lime" id="sunBtn" style="margin-top:2px">일조 분석</button>
+    <div id="sunStatus" class="status">건물을 먼저 검색해 선택하세요.</div>
+    <div id="sunResult" hidden>
+      <div class="timeline">
+        <button class="btn-sm btn-ghost" id="playBtn" aria-label="시간 자동 재생">재생</button>
+        <input type="range" id="sunHour" min="5" max="20" step="0.5" value="12" aria-label="시각">
+        <output id="sunHourOut">12:00</output>
+      </div>
+      <div class="suninfo" id="sunInfo"></div>
+      <table class="heat" id="heat" aria-label="방향별 시간대별 직사광 비율"></table>
+      <div class="legend-bar"><span>직사광 없음</span><span class="sw"></span><span>전면 직사광</span></div>
+      <div class="notice" id="sunNotes"></div>
+    </div>
+  </section>
+
+  <!-- 상권·유동 -->
+  <section class="panel" data-panel="area" hidden>
+    <h2>상권 구성</h2>
+    <p class="desc">반경 안의 업종별 업소 수를 카카오 장소 데이터로 집계합니다.</p>
+    <div class="row">
+      <select id="radius" aria-label="분석 반경"><option value="300">반경 300m</option><option value="500" selected>반경 500m</option><option value="1000">반경 1km</option></select>
+      <button class="btn-lime" id="areaBtn">상권 분석</button>
+    </div>
+    <div id="areaStatus" class="status">건물을 먼저 검색해 선택하세요.</div>
+    <div id="areaOut"></div>
+
+    <div class="sep"></div>
+    <h2>유동인구 (서울시 실시간 도시데이터)</h2>
+    <p class="desc">서울시 주요 장소 단위의 현재 인구와 향후 12시간 예측입니다. 건물 위치가 아닌 선택한 장소의 값이며, 과거 평균 통계가 아닙니다.</p>
+    <label class="lbl" for="hotspot">기준 장소 (가까운 순)</label>
+    <div class="row">
+      <select id="hotspot"></select>
+      <button class="btn-lime" id="footBtn">조회</button>
+    </div>
+    <div id="footStatus" class="status"></div>
+    <div id="footOut"></div>
+  </section>
+
+  <!-- 유사 건물 -->
+  <section class="panel" data-panel="similar" hidden>
+    <h2>내 건물과 비슷한 건물 찾기</h2>
+    <p class="desc">선택한 건물과 입지(역 거리), 상권(300m 안 음식점·카페·은행·공공기관), 규모(건축면적·높이)가 비슷한 오피스 빌딩을 후보 지역에서 찾아 점수를 매깁니다. 임대료는 포함되지 않습니다. 찾은 건물은 비교 목록에 추가해 NOC를 입력하세요.</p>
+    <div class="lbl">후보 지역</div>
+    <div class="chips" id="hubChips"></div>
+    <label class="chip" style="margin-bottom:10px"><input type="checkbox" id="simComps" checked> 내가 입력한 비교 건물도 포함 (NOC 비교용)</label>
+    <div class="fields">
+      <div><label for="simFoot">내 건물 건축면적 (㎡)</label><input id="simFoot" type="number" min="0" placeholder="비우면 OSM 값"></div>
+      <div><label for="simH">내 건물 높이 (m)</label><input id="simH" type="number" min="0" placeholder="비우면 OSM 값"></div>
+    </div>
+    <div class="lbl" style="margin-top:12px">무엇을 더 중요하게 볼까요</div>
+    <div class="wrow"><span>입지(역)</span><input type="range" id="wLoc" min="0" max="3" step="1" value="2"><b id="wLocV">2</b></div>
+    <div class="wrow"><span>상권</span><input type="range" id="wCom" min="0" max="3" step="1" value="2"><b id="wComV">2</b></div>
+    <div class="wrow"><span>규모</span><input type="range" id="wSize" min="0" max="3" step="1" value="1"><b id="wSizeV">1</b></div>
+    <button class="wide btn-lime" id="simBtn">유사 건물 찾기</button>
+    <div id="simStatus" class="status">건물을 먼저 검색해 선택하세요.</div>
+    <div id="peekBar" class="notice" hidden></div>
+    <div id="simOut"></div>
+  </section>
+
+  <!-- 비교 -->
+  <section class="panel" data-panel="comp" hidden>
+    <h2>주변 건물 NOC 비교</h2>
+    <p class="desc">잠실, 을지로 등 비교할 건물의 계약 조건을 입력하면 내 건물과 같은 기준으로 NOC를 비교합니다. 목록은 이 브라우저에 저장됩니다.</p>
+    <div class="fields">
+      <div class="span2 ac-wrap"><label for="cName">건물명 (입력하면 검색 목록이 나옵니다)</label><input id="cName" placeholder="예: 을지로 ○○빌딩" autocomplete="off"><div class="ac" id="acName" hidden></div></div>
+      <div class="span2 ac-wrap"><label for="cAddr">주소 (건물명만 골라도 자동으로 채워집니다)</label><input id="cAddr" placeholder="예: 서울 중구 을지로 100" autocomplete="off"><div class="ac" id="acAddr" hidden></div></div>
+      <div><label for="cRent">월 임대료 (원)</label><input id="cRent" type="number" min="0"></div>
+      <div><label for="cFee">월 관리비 (원)</label><input id="cFee" type="number" min="0"></div>
+      <div><label for="cDep">보증금 (원)</label><input id="cDep" type="number" min="0"></div>
+      <div><label for="cArea">면적 (㎡, 위에서 고른 기준)</label><input id="cArea" type="number" min="0.01" step="0.01"></div>
+      <div class="span2"><label for="cFree">렌트프리 (개월)</label><input id="cFree" type="number" min="0" value="0"></div>
+    </div>
+    <button class="wide btn-lime" id="cAdd">비교 건물 추가</button>
+    <div id="cStatus" class="status"></div>
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn-ghost btn-sm" id="csvTpl">CSV 양식</button>
+      <button class="btn-ghost btn-sm" id="csvBtn">CSV 가져오기</button>
+      <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+    </div>
+    <div class="hint">중개사 시세표나 부동산원 자료를 CSV로 정리해 한 번에 가져올 수 있습니다. 주소가 없거나 찾지 못하면 건물명으로 위치를 검색합니다 (이름이 겹치면 위치를 확인하세요).</div>
+    <div class="lbl" style="margin-top:12px">비교 범위</div>
+    <select id="cScope"><option value="0">입력한 전체</option><option value="1">내 건물 반경 1km 이내</option><option value="2">내 건물 반경 2km 이내</option><option value="5">내 건물 반경 5km 이내</option></select>
+    <div id="cSummary"></div>
+    <div id="cBars" class="cmp"></div>
+    <div id="cViz"></div>
+    <div id="cList"></div>
+    <div class="row" style="margin-top:12px" id="cTools" hidden>
+      <button class="btn-ghost" id="cCsv">CSV 내보내기</button>
+      <button class="btn-ghost" id="cClear">전체 삭제</button>
+    </div>
+  </section>
+
+  <!-- AI 질문 -->
+  <section class="panel" data-panel="ai" hidden>
+    <h2>AI에게 물어보기</h2>
+    <p class="desc">비교 탭에 입력하거나 CSV로 가져온 건물 목록을 근거로, 조건에 맞는 건물을 골라 줍니다. 목록에 없는 건물이나 가격은 알려 주지 못하고 지어내지도 않습니다.</p>
+    <div class="lbl">예시 (눌러서 채우기)</div>
+    <div class="chips" id="aiChips">
+      <span class="chip" data-q="잠실에 있고 NOC가 평당 23만원 안팎인 건물을 알려줘">잠실 · 평당 23만원 안팎</span>
+      <span class="chip" data-q="내 건물보다 NOC가 낮은 건물을 낮은 순으로 알려줘">내 건물보다 저렴한 곳</span>
+      <span class="chip" data-q="역에서 가까운 순서로 3곳을 NOC와 함께 알려줘">역에서 가까운 순</span>
+    </div>
+    <textarea id="aiQ" rows="3" placeholder="예: 현재 잠실에 면적 500평 정도 되면서 NOC가 23만원 정도 되는 건물 리스트를 알려줘"></textarea>
+    <button class="wide btn-lime" id="aiBtn">질문하기</button>
+    <div id="aiStatus" class="status"></div>
+    <div id="aiOut"></div>
+    <div class="notice">AI는 비교 탭의 건물 정보(이름·주소·임대 조건·계산된 NOC·역 거리)만 받아 답합니다. 층당 전용면적은 목록에 없으면 알 수 없어 계약 면적 기준으로 답하고, 기준이 다르면 답변에 표시합니다.</div>
+  </section>
+</aside>
+
+<main class="map-wrap">
+  <div id="map"></div>
+  <div class="map-chip"><strong id="selectedTitle">지도에서 건물을 검색하세요</strong><span id="selectedSubtitle">선택한 주소와 좌표가 여기에 표시됩니다.</span></div>
+  <button class="engine-btn" id="engineBtn" hidden></button>
+  <div class="map-legend">
+    <div class="lg"><span class="sq" style="background:#e5322d;opacity:.8"></span>검색한 건물 · 선택한 건물</div>
+    <div class="lg"><span class="dot st"></span>지하철역</div>
+    <div class="lg"><span class="dot en"></span>출입구</div>
+    <div class="lg"><span class="dot cp"></span>비교 건물</div>
+    <div class="lg"><span class="sq"></span>그림자</div>
+    <div class="lg"><span class="sq-ring"></span>상권 범위</div>
+  </div>
+</main>
+</div>
+
+<div id="report"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* 카카오맵 JavaScript 키가 있으면 카카오맵 SDK를 불러옵니다 (없거나 '기본 지도'를 골랐다면 Leaflet 사용) */
+(function () {
+  try {
+    if (localStorage.getItem('ri_engine') === 'leaflet') { window.KAKAO_OFF = true; }
+    const x = new XMLHttpRequest(); x.open('GET', '/api/config', false); x.send();
+    const k = x.status === 200 ? JSON.parse(x.responseText).kakao_js_key : null;
+    window.KAKAO_AVAILABLE = !!k;
+    if (k && !window.KAKAO_OFF) { window.KAKAO_KEY = k; document.write('<scr' + 'ipt src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + encodeURIComponent(k) + '"></scr' + 'ipt>'); }
+  } catch (e) {}
+})();
+</script>
+<script>
+/* ───────── 카카오맵 어댑터: 이 화면이 쓰는 Leaflet 기능만 카카오맵 SDK로 옮겨 그립니다 ───────── */
+(function () {
+  if (!(window.KAKAO_KEY && window.kakao && kakao.maps && kakao.maps.Map)) { if (window.KAKAO_KEY) window.KAKAO_FAIL = true; return; }
+  const K = kakao.maps, LL = window.L;
+  const pair = a => Array.isArray(a) ? [Number(a[0]), Number(a[1])] : [Number(a.lat), Number(a.lng)];
+  const ll = a => { const p = pair(a); return new K.LatLng(p[0], p[1]); };
+  const rgba = (hex, o) => { const m = /^#([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return hex || 'transparent'; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${o})`; };
+  const box = (cls, html, ox = 0, oy = 0) => { const w = document.createElement('div'); w.style.cssText = 'position:relative;width:0;height:0'; w.innerHTML = html; return w; };
+  let theMap = null, info = null, hoverO = null;
+
+  function showInfo(html, latlng) {
+    if (!theMap) return;
+    if (!info) info = new K.InfoWindow({removable: true, zIndex: 50});
+    info.setContent(`<div style="padding:8px 12px;font-size:12px;line-height:1.55;min-width:120px;color:#1f2933">${html}</div>`);
+    info.setPosition(latlng); info.open(theMap._m);
+  }
+  function hoverShow(html, latlng) {
+    if (!theMap) return;
+    if (!hoverO) { const el = document.createElement('div'); el.style.cssText = 'position:relative;width:0;height:0;pointer-events:none'; el.innerHTML = '<div class="ktip light" style="position:absolute;left:0;top:0;transform:translate(-50%,-100%) translateY(-12px)"></div>'; hoverO = {el, o: new K.CustomOverlay({content: el, xAnchor: 0, yAnchor: 0, zIndex: 60})}; }
+    hoverO.el.firstChild.innerHTML = html; hoverO.o.setPosition(latlng); hoverO.o.setMap(theMap._m);
+  }
+  const hoverHide = () => { if (hoverO) hoverO.o.setMap(null); };
+
+  class KGroup {
+    constructor() { this.items = []; this._map = null; }
+    addTo(m) { this._map = m; this.items.forEach(i => i._show(m)); return this; }
+    _show(m) { this.addTo(m); }
+    _add(i) { this.items.push(i); if (this._map) i._show(this._map); }
+    _hide() { this.items.forEach(i => i._hide()); this._map = null; }
+    clearLayers() { this.items.forEach(i => i._hide()); this.items = []; return this; }
+    getLayers() { return this.items; }
+  }
+  class KObj {
+    constructor() { this._k = []; this._shown = false; this._built = false; this._tip = null; this._popup = null; this._z = 0; }
+    addTo(t) { if (t instanceof KGroup) t._add(this); else this._show(t); return this; }
+    remove() { this._hide(); return this; }
+    _show(m) { if (this._shown) return; this._map = m; if (!this._built) { this._build(); this._built = true; } this._shown = true; this._k.forEach(o => o.setMap(m._m)); }
+    _hide() { if (!this._shown) return; this._k.forEach(o => o.setMap(null)); this._shown = false; }
+    bindPopup(h) { this._popup = h; return this; }
+    bindTooltip(h, o) { this._tip = {h, o: o || {}}; return this; }
+    openPopup() { if (this._popup && this._shown) showInfo(this._popup, this._anchor()); return this; }
+    bringToFront() { this._z = 100; this._k.forEach(o => o.setZIndex && o.setZIndex(100)); return this; }
+    _permTip() {
+      if (!this._tip || !this._tip.o.permanent) return;
+      const [ox, oy] = this._tip.o.offset || [0, 0];
+      const el = document.createElement('div'); el.style.cssText = 'position:relative;width:0;height:0;pointer-events:none';
+      el.innerHTML = `<div class="ktip ${this._tip.o.className || ''}" style="position:absolute;left:0;top:0;transform:translate(-50%,-100%) translate(${ox}px,${oy - 6}px)">${this._tip.h}</div>`;
+      this._k.push(new K.CustomOverlay({position: this._anchor(), content: el, xAnchor: 0, yAnchor: 0, zIndex: 30}));
+    }
+    _wireDom(el) {     // 마커류: DOM 이벤트
+      if (this._popup) { el.style.cursor = 'pointer'; el.addEventListener('click', e => { e.stopPropagation(); showInfo(this._popup, this._anchor()); }); }
+      if (this._tip && !this._tip.o.permanent) { el.addEventListener('mouseenter', () => hoverShow(this._tip.h, this._anchor())); el.addEventListener('mouseleave', hoverHide); }
+    }
+    _wireShape(shape) { // 도형류: 카카오 이벤트
+      if (this._popup) K.event.addListener(shape, 'click', e => showInfo(this._popup, e.latLng));
+      if (this._tip && !this._tip.o.permanent) { K.event.addListener(shape, 'mouseover', e => hoverShow(this._tip.h, e.latLng)); K.event.addListener(shape, 'mouseout', hoverHide); }
+    }
+  }
+  class KMarker extends KObj {
+    constructor(p, o = {}) { super(); this._p = pair(p); this._o = o; }
+    _anchor() { return new K.LatLng(this._p[0], this._p[1]); }
+    getLatLng() { return {lat: this._p[0], lng: this._p[1]}; }
+    _build() {
+      const el = box('', (this._o.icon && this._o.icon.html) || '<span class="pin"></span>');
+      if (this._o.interactive === false) el.style.pointerEvents = 'none';
+      this._k.push(new K.CustomOverlay({position: this._anchor(), content: el, xAnchor: 0, yAnchor: 0, zIndex: this._o.interactive === false ? 8 : 12, clickable: this._o.interactive !== false}));
+      this._permTip(); this._wireDom(el);
+    }
+  }
+  class KCircleMarker extends KMarker {
+    _build() {
+      const o = this._o, r = o.radius || 6, w = o.weight == null ? 3 : o.weight;
+      const el = box('', `<span style="position:absolute;left:${-r}px;top:${-r}px;width:${2 * r}px;height:${2 * r}px;box-sizing:border-box;border-radius:50%;border:${w}px solid ${o.color || '#3388ff'};background:${rgba(o.fillColor || o.color, o.fillOpacity == null ? .2 : o.fillOpacity)}"></span>`);
+      this._k.push(new K.CustomOverlay({position: this._anchor(), content: el, xAnchor: 0, yAnchor: 0, zIndex: 10, clickable: true}));
+      this._permTip(); this._wireDom(el);
+    }
+  }
+  const bboxOf = pts => { const la = pts.map(p => p[0]), lo = pts.map(p => p[1]); return {s: Math.min(...la), n: Math.max(...la), w: Math.min(...lo), e: Math.max(...lo)}; };
+  class KBounds {
+    constructor(pts) { this.pts = pts; }
+    pad(f) { const b = bboxOf(this.pts), dy = (b.n - b.s) * f, dx = (b.e - b.w) * f; return new KBounds([[b.s - dy, b.w - dx], [b.n + dy, b.e + dx]]); }
+  }
+  class KCircle extends KObj {
+    constructor(p, o = {}) { super(); this._p = pair(p); this._o = o; }
+    _anchor() { return new K.LatLng(this._p[0], this._p[1]); }
+    getBounds() { const r = this._o.radius, dy = r / 110540, dx = r / (111320 * Math.cos(this._p[0] * Math.PI / 180)); return new KBounds([[this._p[0] - dy, this._p[1] - dx], [this._p[0] + dy, this._p[1] + dx]]); }
+    _build() {
+      const o = this._o;
+      const c = new K.Circle({center: this._anchor(), radius: o.radius, strokeWeight: o.weight == null ? 3 : o.weight, strokeColor: o.color, strokeOpacity: .9, strokeStyle: o.dashArray ? 'dash' : 'solid', fillColor: o.fillColor || o.color, fillOpacity: o.fillOpacity == null ? .2 : o.fillOpacity, zIndex: 1});
+      this._k.push(c); this._wireShape(c);
+    }
+  }
+  class KPolygon extends KObj {
+    constructor(pts, o = {}) { super(); this._pts = pts.map(pair); this._o = o; }
+    _anchor() { const b = bboxOf(this._pts); return new K.LatLng((b.s + b.n) / 2, (b.w + b.e) / 2); }
+    getBounds() { return new KBounds(this._pts); }
+    _build() {
+      const o = this._o;
+      const p = new K.Polygon({path: this._pts.map(x => new K.LatLng(x[0], x[1])), strokeWeight: o.stroke === false ? 0 : (o.weight == null ? 3 : o.weight), strokeColor: o.color, strokeOpacity: o.stroke === false ? 0 : (o.opacity == null ? 1 : o.opacity), fillColor: o.fillColor || o.color, fillOpacity: o.fillOpacity == null ? .2 : o.fillOpacity, zIndex: this._z});
+      this._k.push(p); if (o.interactive !== false) this._wireShape(p);
+    }
+  }
+  class KPolyline extends KObj {
+    constructor(pts, o = {}) { super(); this._pts = pts.map(pair); this._o = o; }
+    _anchor() { return new K.LatLng(this._pts[0][0], this._pts[0][1]); }
+    getBounds() { return new KBounds(this._pts); }
+    _build() {
+      const o = this._o;
+      const p = new K.Polyline({path: this._pts.map(x => new K.LatLng(x[0], x[1])), strokeWeight: o.weight == null ? 3 : o.weight, strokeColor: o.color, strokeOpacity: o.opacity == null ? 1 : o.opacity, strokeStyle: o.dashArray ? 'shortdash' : 'solid', zIndex: 5});
+      this._k.push(p); this._wireShape(p);
+    }
+  }
+  class KMap {
+    constructor(id) {
+      this._m = new K.Map(document.getElementById(id), {center: new K.LatLng(37.51195, 127.08828), level: 3});
+      this._m.addControl(new K.ZoomControl(), K.ControlPosition.RIGHT);
+      this._m.addControl(new K.MapTypeControl(), K.ControlPosition.TOPRIGHT);
+      theMap = this;
+    }
+    setView(c, z) { this._m.setCenter(ll(c)); if (z != null) this._m.setLevel(Math.max(1, Math.min(14, 20 - Math.round(z)))); return this; }
+    fitBounds(b, o) {
+      const pts = b instanceof KBounds ? b.pts : b.map(pair); if (!pts.length) return this;
+      const bb = new K.LatLngBounds(); pts.forEach(p => bb.extend(new K.LatLng(p[0], p[1])));
+      const pad = (o && o.padding) || [20, 20];
+      this._m.setBounds(bb, pad[1], pad[0], pad[1], pad[0]); return this;
+    }
+    removeLayer(x) { if (x && x._hide) x._hide(); return this; }
+  }
+  const noop = {addTo() { return this; }};
+  window.L = {
+    map: id => new KMap(id), layerGroup: () => new KGroup(), marker: (p, o) => new KMarker(p, o), circleMarker: (p, o) => new KCircleMarker(p, o),
+    circle: (p, o) => new KCircle(p, o), polygon: (p, o) => new KPolygon(p, o), polyline: (p, o) => new KPolyline(p, o),
+    divIcon: o => o, tileLayer: () => noop, control: {zoom: () => noop, layers: () => noop}
+  };
+  window.LL = LL; window.USE_KAKAO = true;
+})();
+</script>
+<script>
+/* ───────── 유틸 ───────── */
+const $ = id => document.getElementById(id);
+const PY = 3.305785;
+const nf = new Intl.NumberFormat('ko-KR', {maximumFractionDigits: 0});
+const fmt = n => Number.isFinite(n) ? nf.format(n) : '—';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad2 = n => String(n).padStart(2, '0');
+const store = {
+  load(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
+  save(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+    try { fetch('/api/store/' + k, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({value: v}), keepalive: true}).catch(() => {}); } catch {}
+  }
+};
+/* 서버(my_data.json)에 저장된 값을 먼저 불러옵니다. 서버가 비어 있으면 이 브라우저의 값을 서버로 올립니다. */
+(function syncStore() {
+  try {
+    const x = new XMLHttpRequest(); x.open('GET', '/api/store', false); x.send();
+    if (x.status !== 200) return;
+    const d = JSON.parse(x.responseText) || {};
+    const keys = Object.keys(d).filter(k => /^ri_/.test(k));
+    if (keys.length) keys.forEach(k => { try { localStorage.setItem(k, JSON.stringify(d[k])); } catch {} });
+    else for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^ri_[a-z_]+$/.test(k)) store.save(k, store.load(k, null)); }
+  } catch {}
+})();
+async function api(path) {
+  const r = await fetch(path);
+  let d = null;
+  try { d = await r.json(); } catch {}
+  if (!r.ok) throw new Error((d && d.detail) || `요청 실패 (${r.status})`);
+  return d;
+}
+function setStatus(id, msg, error = false) {
+  const e = $(id); e.textContent = msg; e.classList.toggle('err', error);
+}
+
+/* ───────── 지도 ───────── */
+const map = L.map('map', {zoomControl: false}).setView([37.51195, 127.08828], 15);
+L.control.zoom({position: 'topright'}).addTo(map);
+const OSMA = '&copy; OpenStreetMap contributors';
+const BASES = {
+  '기본 지도': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: OSMA}),
+  '밝은 지도': L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {maxZoom: 19, subdomains: 'abc', attribution: OSMA + ', Tiles: HOT'}),
+  '위성': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, maxNativeZoom: 18, attribution: 'Tiles &copy; Esri'})
+};
+BASES['기본 지도'].addTo(map);
+L.control.layers(BASES, null, {position: 'topright', collapsed: true}).addTo(map);
+const L_shadow = L.layerGroup().addTo(map);
+const L_bld = L.layerGroup().addTo(map);
+const L_route = L.layerGroup().addTo(map);
+const L_station = L.layerGroup().addTo(map);
+const L_comp = L.layerGroup().addTo(map);
+const L_area = L.layerGroup().addTo(map);
+const L_sim = L.layerGroup().addTo(map);
+const L_target = L.layerGroup().addTo(map);   // 검색한 건물 (빨강)
+const L_pick = L.layerGroup().addTo(map);     // 목록에서 누른 건물 (빨강)
+let marker = null;
+const S = {sel: null, access: null, bld: null, sunDone: false, sim: null, pending: null, areaRadius: 500};
+
+/* ───────── 탭 ───────── */
+function showTab(name) {
+  document.querySelectorAll('.tabs [role=tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === name));
+  document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== name);
+  if (name === 'market') onMarketTab();
+}
+document.querySelectorAll('.tabs [role=tab]').forEach(t => t.onclick = () => showTab(t.dataset.tab));
+
+/* ───────── 주소 검색 / 선택 ───────── */
+/* 검색 결과 항목을 한 가지 형태로 맞춤 (장소 검색·주소 검색 공통) */
+function normItem(it) {
+  return {
+    name: it.name || it.building_name || null,
+    address: it.address || '',
+    road_address: it.road_address || '',
+    category: it.category || '',
+    building: !!it.building,
+    type: it.type || 'address',
+    latitude: Number(it.latitude), longitude: Number(it.longitude)
+  };
+}
+const addrOf = it => it.road_address || it.address || '';
+const guOf = it => ((`${it.address} ${it.road_address}`).match(/([가-힣]+구)(?=\s|$)/) || [])[1] || null;
+
+/* 건물 윤곽선 강조 (OpenStreetMap 외곽선) — 빨간색 */
+const pickSeq = new Map();
+async function outlineAt(lat, lon, layer = L_pick) {
+  const my = (pickSeq.get(layer) || 0) + 1; pickSeq.set(layer, my); layer.clearLayers();
+  try {
+    const d = await api(`/api/buildings?latitude=${lat}&longitude=${lon}&radius=60`);
+    if (pickSeq.get(layer) !== my) return;
+    const P = proj(lat, lon); let inB = null, inA = Infinity, nearB = null, nearD = Infinity;
+    d.buildings.forEach(b => {
+      const pts = b.polygon.map(p => P.toM(p[0], p[1])); if (pts.length < 3) return;
+      if (pointInPoly(0, 0, pts)) { const a = Math.abs(polyArea(pts)); if (a < inA) { inA = a; inB = b; } }
+      else { const dd = distToPoly(0, 0, pts); if (dd < nearD) { nearD = dd; nearB = b; } }
+    });
+    const hit = inB || (nearD <= 25 ? nearB : null);
+    if (hit) L.polygon(hit.polygon, {color: '#c8201b', weight: 3, fillColor: '#e5322d', fillOpacity: .55}).bindTooltip(`${hit.name ? esc(hit.name) + ' · ' : ''}높이 ${hit.height}m${hit.height_known ? '' : ' (가정)'}`).addTo(layer).bringToFront();
+    else L.circle([lat, lon], {radius: 22, color: '#e5322d', weight: 2.5, dashArray: '5 4', fillColor: '#e5322d', fillOpacity: .15, interactive: false}).addTo(layer);
+  } catch {}
+}
+/* 왼쪽 위 정보 상자: 건물명 / 주소 / 좌표 */
+function showInfo(name, addr, lat, lon) {
+  $('selectedTitle').textContent = name;
+  $('selectedSubtitle').innerHTML = (addr ? esc(addr) + '<br>' : '') + (Number.isFinite(lat) ? `${lat.toFixed(6)}, ${lon.toFixed(6)}` : '위치 정보 없음');
+}
+/* 목록에서 건물을 누르면: 지도 이동 + 빨간 윤곽선 + 정보 상자 갱신 (분석 대상은 바뀌지 않음) */
+function focusPlace(p) {
+  showInfo(p.name, p.address, p.lat, p.lon);
+  map.setView([p.lat, p.lon], 18); outlineAt(p.lat, p.lon, L_pick);
+}
+function updatePeekBar() {
+  const bar = $('peekBar'); if (!bar) return;
+  if (!S.home || !S.sel || S.sel.key === S.home.key) { bar.hidden = true; return; }
+  bar.hidden = false;
+  bar.innerHTML = `지금 분석 대상: <b>${esc(S.sel.title)}</b> (내 건물 아님)<div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="btn-ghost btn-sm" data-go="access">역 접근</button><button class="btn-ghost btn-sm" data-go="sun">일조</button><button class="btn-ghost btn-sm" data-go="area">상권·유동</button><button class="btn-sm" data-go="home">내 건물로 돌아가기</button></div>`;
+  bar.querySelectorAll('button').forEach(b => b.onclick = () => { if (b.dataset.go === 'home') { choose(S.homeRaw, {peek: true}); } else showTab(b.dataset.go); });
+}
+
+function choose(raw, opt = {}) {
+  const item = normItem(raw);
+  const lat = item.latitude, lon = item.longitude, addr = addrOf(item);
+  const title = item.name || addr;
+  S.sel = {lat, lon, title, name: item.name, addr, gu: guOf(item), key: `${lat.toFixed(6)},${lon.toFixed(6)}`};
+  if (!opt.peek) {
+    S.home = S.sel; S.homeRaw = raw;
+    store.save('ri_home', item);
+    $('homeBld').value = title; $('homeInfo').textContent = `${item.name ? addr + ' · ' : ''}${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  }
+  S.access = null; S.bld = null; S.sunDone = false;
+  map.setView([lat, lon], 17);
+  if (marker) map.removeLayer(marker);
+  marker = L.marker([lat, lon], {icon: L.divIcon({className: '', iconSize: [0, 0], html: '<span class="pin"></span>'})}).addTo(map)
+    .bindTooltip(esc(title), {permanent: true, direction: 'top', offset: [0, -34], className: 'tgt'});
+  showInfo(title, item.name ? addr : '', lat, lon);
+  L_pick.clearLayers();
+  [L_shadow, L_bld, L_route, L_station].forEach(g => g.clearLayers());
+  clearPlaces();
+  if (!opt.peek) { L_sim.clearLayers(); S.sim = null; $('simOut').innerHTML = ''; V.sim = null; V.simWavgEff = null; }
+  drawAreaCircle();
+  $('accessList').innerHTML = ''; $('areaOut').innerHTML = ''; $('footOut').innerHTML = '';
+  $('sunResult').hidden = true;
+  $('kStation').textContent = '조회 중…'; $('kWalk').textContent = '가장 가까운 역을 찾고 있습니다';
+  $('kSun').textContent = '—'; $('kSunSub').textContent = '일조 탭에서 분석';
+  ['accessStatus', 'sunStatus', 'areaStatus', 'simStatus'].forEach(id => setStatus(id, '분석할 준비가 되었습니다.'));
+  loadHotspots();
+  renderComps(); renderMarket(); renderVerdict();
+  setStatus('appStatus', `'${title}'을(를) 지도에 표시했습니다.`);
+  updatePeekBar(); outlineAt(lat, lon, L_target);
+  analyzeAccess({auto: true});
+}
+
+/* ───────── 건물명 검색: 입력 중 자동완성 + Enter/검색 버튼으로 전체 목록 ───────── */
+function attachPicker(input, box, onPick, onEnter) {
+  let items = [], active = -1, timer = null, seq = 0;
+  const close = () => { box.hidden = true; active = -1; input.setAttribute('aria-expanded', 'false'); };
+  const paint = () => {
+    if (!items.length) { close(); return; }
+    let html = '', last = null;
+    items.forEach((it, i) => {
+      const grp = it.building ? '건물·오피스' : '장소';
+      if (grp !== last) { html += `<div class="ac-grp">${grp}</div>`; last = grp; }
+      const cat = (it.category || '').split(' > ').slice(-1)[0];
+      html += `<div class="ac-item" role="option" data-i="${i}" aria-selected="${i === active}"><b>${esc(it.name || addrOf(it))}</b>${it.building ? '<span class="btag">건물</span>' : ''}<small>${esc(addrOf(it))}${cat ? ' · ' + esc(cat) : ''}</small></div>`;
+    });
+    box.innerHTML = html; box.hidden = false; input.setAttribute('aria-expanded', 'true');
+    box.querySelectorAll('.ac-item').forEach(el => el.onmousedown = e => { e.preventDefault(); pick(items[Number(el.dataset.i)]); });
+    const a = box.querySelector('[aria-selected=true]'); if (a) a.scrollIntoView({block: 'nearest'});
+  };
+  const pick = it => { close(); onPick(it); };
+  async function suggest(q) {
+    const my = ++seq;
+    try {
+      const d = await api('/api/search?mode=suggest&query=' + encodeURIComponent(q));
+      if (my !== seq) return;
+      items = d.places.map(normItem).filter(x => x.building); active = -1; paint();
+    } catch { if (my === seq) close(); }
+  }
+  input.addEventListener('input', () => {
+    clearTimeout(timer); const q = input.value.trim();
+    if (q.length < 2) { seq++; close(); return; }
+    timer = setTimeout(() => suggest(q), 280);
+  });
+  input.addEventListener('keydown', e => {
+    const open = !box.hidden && items.length;
+    if (e.key === 'ArrowDown' && open) { active = (active + 1) % items.length; paint(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp' && open) { active = (active - 1 + items.length) % items.length; paint(); e.preventDefault(); }
+    else if (e.key === 'Enter') {
+      if (open && active >= 0) { e.preventDefault(); pick(items[active]); }
+      else { clearTimeout(timer); seq++; close(); if (onEnter) onEnter(); }
+    } else if (e.key === 'Escape') close();
+  });
+  input.addEventListener('blur', () => setTimeout(close, 150));
+  input.addEventListener('focus', () => { if (items.length && input.value.trim().length >= 2) paint(); });
+}
+
+async function searchAddress() {
+  const q = $('addressQuery').value.trim(), box = $('searchResults');
+  if (q.length < 2) { setStatus('appStatus', '건물명이나 주소를 두 글자 이상 입력하세요.', true); return; }
+  box.innerHTML = '<div class="hint">검색 중...</div>';
+  let places = [], addrs = [];
+  try {
+    const d = await api('/api/search?mode=full&query=' + encodeURIComponent(q));
+    places = d.places.map(normItem).filter(x => x.building); addrs = places.length ? [] : d.addresses.map(normItem);
+  } catch (e) {
+    try { addrs = (await api('/api/address?query=' + encodeURIComponent(q))).map(normItem); }
+    catch (e2) { box.innerHTML = ''; setStatus('appStatus', '검색 오류: ' + e2.message, true); return; }
+  }
+  const all = places.concat(addrs);
+  if (!all.length) { box.innerHTML = '<div class="hint">건물 검색 결과가 없습니다. 건물명 일부만 쓰거나 도로명·지번 주소로 다시 검색해 보세요.</div>'; setStatus('appStatus', ''); return; }
+  if (all.length === 1) { box.innerHTML = ''; $('addressQuery').value = all[0].name || addrOf(all[0]); choose(all[0]); return; }
+  box.innerHTML = '';
+  const group = (label, list) => {
+    if (!list.length) return;
+    const h = document.createElement('div'); h.className = 'res-grp'; h.textContent = `${label} ${list.length}`; box.appendChild(h);
+    list.forEach(item => {
+      const d = document.createElement('div'); d.className = 'result'; d.tabIndex = 0;
+      const cat = (item.category || '').split(' > ').slice(-1)[0];
+      d.innerHTML = `<b>${esc(item.name || addrOf(item))}</b>${item.building ? '<span class="btag">건물</span>' : ''}<small>${esc(addrOf(item))}${cat ? ' · ' + esc(cat) : ''}</small>`;
+      const go = () => { box.innerHTML = ''; $('addressQuery').value = item.name || addrOf(item); choose(item); };
+      d.onclick = go; d.onkeydown = e => { if (e.key === 'Enter') go(); };
+      box.appendChild(d);
+    });
+  };
+  group('건물', places);
+  group('주소', addrs);
+  setStatus('appStatus', places.length ? `건물 ${all.length}곳을 찾았습니다. 목록에서 선택하세요.` : `건물명은 찾지 못해 주소 ${all.length}건을 보여줍니다.`);
+}
+
+/* ───────── NOC ───────── */
+const MINE_IDS = ['rent','fee','deposit','rate','areaLease','areaEx','term','free','esc','basis','unit'];
+function readMine() {
+  const n = id => Number($(id).value) || 0;
+  return {
+    rent: n('rent'), fee: n('fee'), dep: n('deposit'), rate: n('rate') / 100,
+    areaLease: n('areaLease'), areaEx: n('areaEx'),
+    term: Math.max(1, Math.round(n('term')) || 36), free: n('free'), esc: n('esc') / 100,
+    basis: $('basis').value, unit: $('unit').value
+  };
+}
+const areaOf = m => m.basis === 'ex' ? m.areaEx : m.areaLease;
+const unitFactor = m => m.unit === 'py' ? PY : 1;
+const unitLabel = m => m.unit === 'py' ? '원/평·월' : '원/㎡·월';
+
+function calcNoc(b, g) {
+  const T = g.term;
+  let total = 0;
+  for (let m = 1; m <= T; m++) {
+    const yr = Math.floor((m - 1) / 12);
+    const rent = m <= (b.free || 0) ? 0 : b.rent * Math.pow(1 + g.esc, yr);
+    total += rent + b.fee + b.dep * g.rate / 12;
+  }
+  const nominalMonthly = b.rent + b.fee + b.dep * g.rate / 12;
+  return {nominal: nominalMonthly / b.area, effective: total / T / b.area, nominalMonthly, effectiveMonthly: total / T, total};
+}
+
+function calc() {
+  const g = readMine(), area = areaOf(g);
+  if (area <= 0) { $('calcOut').hidden = false; $('calcOut').innerHTML = '<span class="err">선택한 기준의 면적은 0보다 커야 합니다.</span>'; return null; }
+  store.save('ri_mine', Object.fromEntries(MINE_IDS.map(id => [id, $(id).value])));
+  const r = calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area, free: g.free}, g), f = unitFactor(g);
+  $('kNominal').innerHTML = `${fmt(r.nominal * f)} <span class="unit">${unitLabel(g).replace('원/', '')}</span>`;
+  $('kNominalSub').textContent = (g.basis === 'ex' ? '전용' : '임대') + '면적 기준';
+  $('kEffective').innerHTML = `${fmt(r.effective * f)} <span class="unit">${unitLabel(g).replace('원/', '')}</span>`;
+  const ratio = g.areaLease > 0 ? g.areaEx / g.areaLease * 100 : NaN;
+  $('calcOut').hidden = false;
+  $('calcOut').innerHTML =
+    `<div>월 환산 비용 <span class="big">${fmt(r.nominalMonthly)}원</span></div>` +
+    `<div>계약기간(${g.term}개월) 평균 월 비용 <b>${fmt(r.effectiveMonthly)}원</b> · 총 ${fmt(r.total)}원</div>` +
+    `<div>보증금 환산액 월 ${fmt(g.dep * g.rate / 12)}원${Number.isFinite(ratio) ? ` · 전용률 ${ratio.toFixed(1)}%` : ''}</div>` +
+    `<div class="hint">✓ 입력값을 저장했습니다 (${new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'})}). 다음에 열어도 자동으로 불러옵니다.</div>`;
+  renderNocViz(r, g);
+  renderComps();
+  renderMarket();
+  renderHist();
+  return r;
+}
+
+/* ───────── 역 접근 ───────── */
+async function analyzeAccess(opt) {
+  if (!S.sel) { setStatus('accessStatus', '먼저 건물을 검색해 선택하세요.', true); return; }
+  const auto = !!(opt && opt.auto === true), key = S.sel.key;
+  const btn = $('accessBtn'); btn.disabled = true;
+  setStatus('accessStatus', '주변 역과 출입구, 도보 경로를 조회 중입니다...');
+  try {
+    const d = await api(`/api/access?longitude=${S.sel.lon}&latitude=${S.sel.lat}`);
+    if (!S.sel || S.sel.key !== key) return;
+    S.access = d; renderAccess(d, auto);
+  } catch (e) { setStatus('accessStatus', '분석 오류: ' + e.message, true); if (auto) { $('kStation').textContent = '—'; $('kWalk').textContent = '역 정보를 불러오지 못했습니다'; } }
+  finally { btn.disabled = false; }
+}
+
+function renderAccess(d, auto) {
+  L_station.clearLayers(); L_route.clearLayers();
+  const list = $('accessList'); list.innerHTML = '';
+  (d.entrances || []).forEach(en => {
+    L.circleMarker([en.latitude, en.longitude], {radius: 5, color: '#63746d', fillColor: '#e9eff0', fillOpacity: .85, weight: 1})
+      .bindPopup(`<b>${esc(en.name)}</b>${en.exit_number ? ` (${esc(en.exit_number)}번 출구)` : ''}`).addTo(L_station);
+  });
+  if (!d.stations.length) { setStatus('accessStatus', '반경 1.5km 안에서 지하철역을 찾지 못했습니다.', true); return; }
+  d.stations.forEach((s, i) => {
+    const sm = L.circleMarker([s.latitude, s.longitude], {radius: i === 0 ? 10 : 7, color: '#fff', fillColor: i === 0 ? '#1f6feb' : '#75a7ee', fillOpacity: 1, weight: 3})
+      .bindPopup(`<b>${esc(s.name)}</b><br>직선거리 ${s.straight_distance_m}m`).addTo(L_station);
+    if (i === 0) sm.bindTooltip(`🚇 ${esc(s.name)} · 도보 ${s.walk.duration_min}분`, {permanent: true, direction: 'top', offset: [0, -8], className: 'stn'});
+    const w = s.walk, t = s.target;
+    const where = t.type === 'entrance' ? `${t.exit_number ? esc(t.exit_number) + '번 ' : ''}출입구 기준` : '역 중심점 기준';
+    const c = document.createElement('div');
+    c.className = 'card' + (i === 0 ? ' active' : '');
+    c.innerHTML = `<div class="t">${esc(s.name)} ${s.lines.length ? `<small style="color:var(--muted);font-weight:500">${esc(s.lines.join(', '))}</small>` : ''}${w.estimated ? '<span class="tag">추정</span>' : ''}</div>` +
+      `<div class="m">도보 <b>${w.duration_min}분</b> · ${fmt(w.distance_m)}m · 직선 ${fmt(s.straight_distance_m)}m<br>${where}${w.estimated && w.error ? `<br><span class="err">${esc(w.error)}</span>` : ''}</div>`;
+    c.onclick = () => { list.querySelectorAll('.card').forEach(x => x.classList.remove('active')); c.classList.add('active'); showRoute(i, true); };
+    list.appendChild(c);
+  });
+  const best = d.stations[0];
+  $('kStation').textContent = best.name + (/역$/.test(best.name) ? '' : '역');
+  $('kWalk').textContent = `도보 ${best.walk.duration_min}분 · ${fmt(best.walk.distance_m)}m${best.walk.estimated ? ' (추정)' : ''}`;
+  showRoute(0, !auto);
+  const est = d.stations.some(s => s.walk.estimated);
+  setStatus('accessStatus', `역 ${d.stations.length}곳, 출입구 ${d.entrances.length}곳을 지도에 표시했습니다.` + (est ? ' 일부는 도보 API 실패로 직선거리 기반 추정입니다.' : '') + (d.entrance_note ? ' 출입구 조회 실패: ' + d.entrance_note : ''), est);
+}
+
+function showRoute(i, fit = true) {
+  L_route.clearLayers();
+  const s = S.access && S.access.stations[i]; if (!s) return;
+  const pts = s.walk.path && s.walk.path.length ? s.walk.path : [[S.sel.lat, S.sel.lon], [s.target.latitude, s.target.longitude]];
+  const line = L.polyline(pts, {color: '#22526c', weight: 5, opacity: .85, dashArray: s.walk.estimated ? '6 8' : null}).addTo(L_route);
+  if (fit) map.fitBounds(line.getBounds().pad(.25));
+}
+
+/* ───────── 태양 위치 (NOAA/SunCalc 계열 근사식) ───────── */
+function sunPos(date, lat, lon) {
+  const rad = Math.PI / 180;
+  const d = date.valueOf() / 86400000 - 0.5 + 2440588 - 2451545;
+  const M = rad * (357.5291 + 0.98560028 * d);
+  const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+  const Ls = M + C + rad * 102.9372 + Math.PI;
+  const e = rad * 23.4397;
+  const dec = Math.asin(Math.sin(e) * Math.sin(Ls));
+  const ra = Math.atan2(Math.sin(Ls) * Math.cos(e), Math.cos(Ls));
+  const H = rad * (280.16 + 360.9856235 * d) + rad * lon - ra;
+  const phi = rad * lat;
+  const alt = Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
+  const az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(phi) - Math.tan(dec) * Math.cos(phi));
+  return {alt: alt / rad, az: (az / rad + 180 + 360) % 360};   // 방위: 북 0°, 시계방향
+}
+const kst = (date, hour) => new Date(`${date}T${pad2(Math.floor(hour))}:${pad2(Math.round((hour % 1) * 60))}:00+09:00`);
+const compass = az => ['북','북동','동','남동','남','남서','서','북서'][Math.round(az / 45) % 8];
+function sunTimes(date, lat, lon) {
+  let rise = null, set = null;
+  for (let m = 0; m < 1440; m += 5) {
+    if (sunPos(kst(date, m / 60), lat, lon).alt > 0) { if (rise === null) rise = m; set = m; }
+  }
+  return rise === null ? null : {rise, set};
+}
+const hhmm = m => `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
+
+/* ───────── 기하 ───────── */
+function proj(lat0, lon0) {
+  const kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
+  return {toM: (lat, lon) => [(lon - lon0) * kx, (lat - lat0) * ky], toLL: (x, y) => [lat0 + y / ky, lon0 + x / kx]};
+}
+function pointInPoly(x, y, P) {
+  let inside = false;
+  for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+    const [xi, yi] = P[i], [xj, yj] = P[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function distToPoly(x, y, P) {
+  let best = Infinity;
+  for (let i = 0; i < P.length; i++) {
+    const a = P[i], b = P[(i + 1) % P.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+    let t = l2 ? ((x - a[0]) * dx + (y - a[1]) * dy) / l2 : 0; t = Math.max(0, Math.min(1, t));
+    best = Math.min(best, Math.hypot(x - (a[0] + t * dx), y - (a[1] + t * dy)));
+  }
+  return best;
+}
+function polyArea(P) { let a = 0; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; a += p[0] * q[1] - q[0] * p[1]; } return a / 2; }
+function convexHull(pts) {
+  const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [], up = [];
+  for (const q of p) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  lo.pop(); up.pop(); return lo.concat(up);
+}
+
+/* 외벽 샘플: 변마다 약 6m 간격, 바깥쪽 법선과 방위(az) 포함 */
+function facadeSamples(P) {
+  const ccw = polyArea(P) > 0, out = [];
+  for (let i = 0; i < P.length; i++) {
+    const a = P[i], b = P[(i + 1) % P.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+    if (L < 1) continue;
+    let nx = dy / L, ny = -dx / L; if (!ccw) { nx = -nx; ny = -ny; }
+    const n = Math.max(1, Math.round(L / 6));
+    for (let k = 0; k < n; k++) {
+      const t = (k + .5) / n;
+      out.push({x: a[0] + dx * t + nx * .3, y: a[1] + dy * t + ny * .3, nx, ny, w: L / n, az: (Math.atan2(nx, ny) * 180 / Math.PI + 360) % 360});
+    }
+  }
+  return out;
+}
+/* 점(높이 z)에서 태양 방향 광선이 다른 건물(각기둥)에 막히는지 */
+function blocked(px, py, z, sdx, sdy, tanEl, others) {
+  for (const b of others) {
+    if (b.h <= z) continue;
+    let tmin = Infinity; const P = b.ptsM;
+    for (let i = 0; i < P.length; i++) {
+      const a = P[i], c = P[(i + 1) % P.length];
+      const ex = c[0] - a[0], ey = c[1] - a[1];
+      const den = sdx * ey - sdy * ex; if (Math.abs(den) < 1e-9) continue;
+      const qx = a[0] - px, qy = a[1] - py;
+      const t = (qx * ey - qy * ex) / den, u = (qx * sdy - qy * sdx) / den;
+      if (t > .05 && u >= 0 && u <= 1 && t < tmin) tmin = t;
+    }
+    if (tmin < Infinity && z + tmin * tanEl < b.h) return true;
+  }
+  return false;
+}
+
+/* ───────── 일조 분석 ───────── */
+async function ensureBuildings() {
+  if (S.bld && S.bld.key === S.sel.key) return S.bld;
+  const d = await api(`/api/buildings?latitude=${S.sel.lat}&longitude=${S.sel.lon}&radius=250`);
+  const P = proj(S.sel.lat, S.sel.lon);
+  const list = d.buildings.map(b => {
+    const pts = b.polygon.slice();
+    if (pts.length > 1 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1]) pts.pop();
+    return {id: b.id, name: b.name, h: b.height, known: b.height_known, ptsM: pts.map(p => P.toM(p[0], p[1]))};
+  }).filter(b => b.ptsM.length >= 3);
+  let idx = -1, bestArea = Infinity;
+  list.forEach((b, i) => { if (pointInPoly(0, 0, b.ptsM)) { const a = Math.abs(polyArea(b.ptsM)); if (a < bestArea) { bestArea = a; idx = i; } } });
+  let targetNote = null;
+  if (idx < 0) {
+    let bd = Infinity;
+    list.forEach((b, i) => { const dd = distToPoly(0, 0, b.ptsM); if (dd < bd) { bd = dd; idx = i; } });
+    if (bd <= 30) targetNote = `검색 좌표가 건물 안이 아니어서 가장 가까운 건물(${bd.toFixed(0)}m)을 대상으로 했습니다.`;
+    else idx = -1;
+  }
+  if (idx < 0) {
+    list.push({id: 'synthetic', name: '가상 건물', h: 30, known: false, ptsM: [[-10, -10], [10, -10], [10, 10], [-10, 10]]});
+    idx = list.length - 1;
+    targetNote = 'OpenStreetMap에서 이 위치의 건물 외곽선을 찾지 못해 20m×20m, 높이 30m의 가상 건물로 계산했습니다. 결과는 참고용입니다.';
+  }
+  S.bld = {key: S.sel.key, list, idx, proj: P, knownCount: d.height_known_count, total: d.count, defaultH: d.default_height_m, targetNote};
+  return S.bld;
+}
+
+async function analyzeSun() {
+  if (!S.sel) { setStatus('sunStatus', '먼저 건물을 검색해 선택하세요.', true); return; }
+  const btn = $('sunBtn'); btn.disabled = true;
+  setStatus('sunStatus', '주변 건물 데이터를 불러오는 중입니다...');
+  try {
+    const B = await ensureBuildings();
+    const date = $('sunDate').value;
+    if (!date) throw new Error('날짜를 선택하세요.');
+    const floor = Math.max(1, Number($('floor').value) || 5);
+    const target = B.list[B.idx], others = B.list.filter((_, i) => i !== B.idx);
+    const z = Math.max(1, Math.min((floor - .5) * 3.3, target.h - .5));
+    const samples = facadeSamples(target.ptsM);
+    const bin = az => (az >= 315 || az < 45) ? 3 : az < 135 ? 1 : az < 225 ? 0 : 2;   // 0남 1동 2서 3북
+    const names = ['남', '동', '서', '북'];
+    const hours = []; for (let h = 6; h <= 19; h++) hours.push(h);
+    const grid = names.map(() => hours.map(() => ({sun: 0, tot: 0}))), all = hours.map(() => ({sun: 0, tot: 0}));
+    const night = hours.map(() => false);
+    hours.forEach((h, hi) => {
+      const pos = sunPos(kst(date, h + .5), S.sel.lat, S.sel.lon);
+      night[hi] = pos.alt <= 2;
+      const dx = Math.sin(pos.az * Math.PI / 180), dy = Math.cos(pos.az * Math.PI / 180), tanEl = Math.tan(Math.max(pos.alt, .1) * Math.PI / 180);
+      samples.forEach(s => {
+        const bi = bin(s.az);
+        let lit = false;
+        if (!night[hi] && s.nx * dx + s.ny * dy > .05) lit = !blocked(s.x, s.y, z, dx, dy, tanEl, others);
+        grid[bi][hi].tot += s.w; all[hi].tot += s.w;
+        if (lit) { grid[bi][hi].sun += s.w; all[hi].sun += s.w; }
+      });
+    });
+    renderHeat(names, hours, grid, all, night);
+    const sumAll = all.reduce((a, c) => a + (c.tot ? c.sun / c.tot : 0), 0);
+    const st = sunTimes(date, S.sel.lat, S.sel.lon);
+    $('kSun').innerHTML = `${sumAll.toFixed(1)} <span class="unit">시간</span>`;
+    $('kSunSub').textContent = `${floor}층 · ${date.slice(5)} 기준`;
+    const south = grid[0].reduce((a, c) => a + (c.tot ? c.sun / c.tot : 0), 0), hasSouth = grid[0].some(c => c.tot);
+    const notes = [];
+    if (st) notes.push(`일출 ${hhmm(st.rise)} · 일몰 ${hhmm(st.set)} (낮 ${((st.set - st.rise) / 60).toFixed(1)}시간)`);
+    if (hasSouth) notes.push(`남측 외벽 직사광 약 ${south.toFixed(1)}시간`);
+    notes.push(`주변 건물 ${B.total}개 중 높이 정보가 있는 건물은 ${B.knownCount}개이며, 나머지는 ${B.defaultH}m로 가정했습니다. 대상 건물 높이: ${target.h}m${target.known ? '' : ' (가정값)'}`);
+    if (B.targetNote) notes.push(B.targetNote);
+    notes.push('날씨·구름, 가로수, 지형, 건물 상세 형상(차양·돌출부)은 반영하지 않았습니다. 시간 칸은 해당 시각 30분 기준입니다.');
+    $('sunNotes').innerHTML = notes.map(esc).join('<br>');
+    $('sunResult').hidden = false;
+    S.sunDone = true;
+    drawBuildings();
+    drawShadows();
+    setStatus('sunStatus', `${date} · ${floor}층(약 ${z.toFixed(0)}m) 기준으로 분석했습니다.`);
+  } catch (e) { setStatus('sunStatus', '일조 분석 오류: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+function renderHeat(names, hours, grid, all, night) {
+  const cell = (c, hi, label) => {
+    if (!c.tot) return `<td class="na" title="${label}: 해당 방향 외벽 없음"></td>`;
+    if (night[hi]) return `<td class="night" title="${label} ${hours[hi]}시: 태양이 낮음">·</td>`;
+    const f = c.sun / c.tot;
+    return `<td style="background:rgba(224,161,27,${(.1 + .9 * f).toFixed(2)})" title="${label} ${hours[hi]}시: 직사광 ${Math.round(f * 100)}%"></td>`;
+  };
+  const sum = r => r.reduce((a, c) => a + (c.tot ? c.sun / c.tot : 0), 0);
+  let html = `<tr><th class="rl"></th>${hours.map(h => `<th>${h}</th>`).join('')}<th></th></tr>`;
+  names.forEach((n, i) => {
+    html += `<tr><th class="rl">${n}측</th>${grid[i].map((c, hi) => cell(c, hi, n + '측')).join('')}<td class="sum">${grid[i].some(c => c.tot) ? sum(grid[i]).toFixed(1) + 'h' : '-'}</td></tr>`;
+  });
+  html += `<tr><th class="rl">전체</th>${all.map((c, hi) => cell(c, hi, '전체')).join('')}<td class="sum">${sum(all).toFixed(1)}h</td></tr>`;
+  $('heat').innerHTML = html;
+}
+
+function drawBuildings() {
+  L_bld.clearLayers();
+  const B = S.bld; if (!B) return;
+  B.list.forEach((b, i) => {
+    const ll = b.ptsM.map(p => B.proj.toLL(p[0], p[1]));
+    L.polygon(ll, i === B.idx
+      ? {color: '#c8201b', weight: 2.5, fillColor: '#e5322d', fillOpacity: .7}
+      : {color: '#8a948f', weight: 1, fillColor: '#ffffff', fillOpacity: .35})
+      .bindTooltip(`${b.name ? esc(b.name) + ' · ' : ''}높이 ${b.h}m${b.known ? '' : ' (가정)'}`).addTo(L_bld);
+  });
+}
+function drawShadows() {
+  L_shadow.clearLayers();
+  const B = S.bld; if (!B) return;
+  const date = $('sunDate').value, h = Number($('sunHour').value);
+  if (!date) return;
+  const pos = sunPos(kst(date, h), S.sel.lat, S.sel.lon);
+  $('sunHourOut').textContent = `${pad2(Math.floor(h))}:${pad2(Math.round((h % 1) * 60))}`;
+  if (pos.alt <= 1) { $('sunInfo').textContent = '해가 뜨지 않았거나 진 시각입니다.'; return; }
+  $('sunInfo').textContent = `태양 고도 ${pos.alt.toFixed(0)}° · 방위 ${pos.az.toFixed(0)}° (${compass(pos.az)}쪽)`;
+  const tan = Math.tan(pos.alt * Math.PI / 180), sx = -Math.sin(pos.az * Math.PI / 180), sy = -Math.cos(pos.az * Math.PI / 180);
+  B.list.forEach(b => {
+    const len = Math.min(b.h / tan, 250), moved = b.ptsM.map(p => [p[0] + sx * len, p[1] + sy * len]);
+    const hull = convexHull(b.ptsM.concat(moved)).map(p => B.proj.toLL(p[0], p[1]));
+    L.polygon(hull, {stroke: false, fillColor: '#2b3a44', fillOpacity: .2, interactive: false}).addTo(L_shadow);
+  });
+}
+let playTimer = null;
+$('playBtn').onclick = () => {
+  if (playTimer) { clearInterval(playTimer); playTimer = null; $('playBtn').textContent = '재생'; return; }
+  $('playBtn').textContent = '정지';
+  playTimer = setInterval(() => {
+    const el = $('sunHour'); let v = Number(el.value) + .5;
+    if (v > Number(el.max)) v = Number(el.min);
+    el.value = v; drawShadows();
+  }, 450);
+};
+$('sunHour').oninput = drawShadows;
+$('sunDate').onchange = () => { if (S.sunDone) analyzeSun(); };
+document.querySelectorAll('[data-date]').forEach(b => b.onclick = () => {
+  const y = new Date().getFullYear();
+  $('sunDate').value = b.dataset.date === 'today' ? new Date().toLocaleDateString('sv-SE') : `${y}-${b.dataset.date}`;
+  if (S.sunDone) analyzeSun();
+});
+
+/* ───────── 상권 ───────── */
+const CAT_COLOR = {FD6:'#e0762a',CE7:'#8a5a3c',CS2:'#2f7fa3',BK9:'#2f9e6a',PO3:'#6b3f8a',HP8:'#c2412d',PM9:'#3aa6a0',MT1:'#b8921f',AD5:'#7a7f3a',PK6:'#5d6963',AG2:'#a05b8c',SC4:'#3f6fb0',AC5:'#b0703f',CT1:'#c2548a',AT4:'#d0a000'};
+const placeLayers = {}, placeData = {};
+function clearPlaces() { Object.keys(placeLayers).forEach(k => { map.removeLayer(placeLayers[k]); delete placeLayers[k]; }); Object.keys(placeData).forEach(k => delete placeData[k]); }
+function renderPlaceList() {
+  const box = $('placeList'); if (!box) return;
+  const codes = Object.keys(placeData);
+  if (!codes.length) { box.innerHTML = '<div class="hint">위 업종을 누르면 업소 목록이 여기에 나옵니다.</div>'; return; }
+  box.innerHTML = codes.map(code => { const d = placeData[code].d;
+    return `<div class="pl-h"><i class="cdot" style="background:${CAT_COLOR[code]}"></i>${esc(d.label)} <span>${d.total > d.shown ? `전체 ${fmt(d.total)}곳 중 가까운 ${d.shown}곳` : `${d.shown}곳`}</span></div>` +
+      `<div class="pl-list">${d.places.map((p, i) => `<div class="pl-i" role="button" tabindex="0" data-c="${code}" data-i="${i}"><b>${esc(p.name)}</b><small>${p.distance_m != null ? p.distance_m + 'm' : ''}</small></div>`).join('')}</div>`; }).join('');
+  box.querySelectorAll('.pl-i').forEach(el => { const go = () => { const m = placeData[el.dataset.c].markers[Number(el.dataset.i)]; if (m) { map.setView(m.getLatLng(), 18); m.openPopup(); } };
+    el.onclick = go; el.onkeydown = e => { if (e.key === 'Enter') go(); }; });
+}
+const radiusText = r => r >= 1000 ? `${r / 1000}km` : `${r}m`;
+
+function drawAreaCircle(fit = false) {
+  L_area.clearLayers();
+  if (!S.sel) return;
+  const r = Number($('radius').value);
+  const c = L.circle([S.sel.lat, S.sel.lon], {radius: r, color: '#02a84c', weight: 2.5, dashArray: '9 7', fillColor: '#03c75a', fillOpacity: .13, interactive: false}).addTo(L_area);
+  L.marker([S.sel.lat + r / 110540, S.sel.lon], {interactive: false, icon: L.divIcon({className: '', iconSize: [0, 0], html: `<span class="ring-label">반경 ${radiusText(r)}</span>`})}).addTo(L_area);
+  if (fit) map.fitBounds(c.getBounds().pad(.1));
+}
+$('radius').onchange = () => drawAreaCircle(true);
+
+async function analyzeArea() {
+  if (!S.sel) { setStatus('areaStatus', '먼저 건물을 검색해 선택하세요.', true); return; }
+  const btn = $('areaBtn'); btn.disabled = true;
+  setStatus('areaStatus', '업종별 업소 수를 집계하는 중입니다...');
+  clearPlaces();
+  try {
+    const radius = Number($('radius').value);
+    const d = await api(`/api/commercial?longitude=${S.sel.lon}&latitude=${S.sel.lat}&radius=${radius}`);
+    S.areaRadius = radius;
+    drawAreaCircle(true);
+    const max = Math.max(...d.items.map(i => i.count), 1);
+    $('areaOut').innerHTML =
+      `<div class="out"><b>${esc(d.profile)}</b><br>반경 ${radiusText(d.radius_m)} 안 업소 ${fmt(d.total)}개 · 음식점·카페 비중 ${Math.round(d.fb_share * 100)}%</div>` +
+      `<div class="lbl" style="margin-top:10px">업종을 누르면 지도에 위치가 표시됩니다 (업종당 최대 45곳)</div>` +
+      `<div class="bars">${d.items.slice().sort((a, b) => b.count - a.count).map(i =>
+        `<div class="bar click" role="button" tabindex="0" data-code="${i.code}"><span><i class="cdot" style="background:${CAT_COLOR[i.code]}"></i>${esc(i.label)}</span><span class="track"><span class="fill" style="display:block;width:${i.count / max * 100}%;background:${CAT_COLOR[i.code]}"></span></span><span class="num">${fmt(i.count)}</span></div>`).join('')}</div>` +
+      `<div class="ctitle">업소 목록</div><div id="placeList"></div>` +
+      `<div class="hint">${esc(d.note)}</div>`;
+    renderPlaceList();
+    $('areaOut').querySelectorAll('.bar.click').forEach(el => {
+      el.onclick = () => togglePlaces(el.dataset.code, el);
+      el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlaces(el.dataset.code, el); } };
+    });
+    setStatus('areaStatus', `반경 ${radiusText(radius)} 범위를 지도에 표시했습니다. 업소가 많은 3개 업종의 목록을 보여줍니다.`);
+    [...$('areaOut').querySelectorAll('.bar.click')].filter(el => Number(el.querySelector('.num').textContent.replace(/,/g, '')) > 0).slice(0, 3).forEach(el => togglePlaces(el.dataset.code, el));
+  } catch (e) { setStatus('areaStatus', '상권 분석 오류: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+async function togglePlaces(code, el) {
+  if (placeLayers[code]) { map.removeLayer(placeLayers[code]); delete placeLayers[code]; delete placeData[code]; el.classList.remove('on'); renderPlaceList(); return; }
+  el.classList.add('on');
+  try {
+    const d = await api(`/api/places?category=${code}&longitude=${S.sel.lon}&latitude=${S.sel.lat}&radius=${S.areaRadius}`);
+    const g = L.layerGroup();
+    const markers = d.places.map(p => L.circleMarker([p.latitude, p.longitude], {radius: 6, color: '#fff', weight: 1.5, fillColor: CAT_COLOR[code], fillOpacity: .95})
+      .bindPopup(`<b>${esc(p.name)}</b><br>${esc(d.label)}${p.distance_m != null ? ' · ' + p.distance_m + 'm' : ''}`).addTo(g));
+    g.addTo(map); placeLayers[code] = g; placeData[code] = {d, markers}; renderPlaceList();
+    setStatus('areaStatus', d.total > d.shown ? `${d.label} ${fmt(d.total)}곳 중 가까운 ${d.shown}곳만 표시했습니다 (카카오 검색 한도).` : `${d.label} ${d.shown}곳을 표시했습니다.`);
+  } catch (e) { el.classList.remove('on'); setStatus('areaStatus', '업소 위치 조회 오류: ' + e.message, true); }
+}
+
+/* ───────── 유동인구 ───────── */
+async function loadHotspots() {
+  try {
+    const d = await api(`/api/hotspots?latitude=${S.sel.lat}&longitude=${S.sel.lon}`);
+    $('hotspot').innerHTML = d.hotspots.map(h => `<option value="${esc(h.name)}">${esc(h.name)} · ${(h.distance_m / 1000).toFixed(1)}km</option>`).join('');
+    if (!d.configured) setStatus('footStatus', '.env에 SEOUL_API_KEY를 설정하면 조회할 수 있습니다.', true);
+    else if (d.hotspots[0].distance_m > 1500) setStatus('footStatus', `가장 가까운 기준 장소가 ${(d.hotspots[0].distance_m / 1000).toFixed(1)}km 떨어져 있어 건물 주변 실제 인구와 차이가 클 수 있습니다.`);
+    else setStatus('footStatus', '');
+  } catch {}
+}
+const LEVEL_COLOR = {'여유': '#2f9e6a', '보통': '#b8921f', '약간 붐빔': '#e07b2a', '붐빔': '#c2412d'};
+async function loadFootfall() {
+  const area = $('hotspot').value;
+  if (!area) { setStatus('footStatus', '먼저 건물을 선택하세요.', true); return; }
+  const btn = $('footBtn'); btn.disabled = true;
+  setStatus('footStatus', '서울시 실시간 도시데이터를 조회 중입니다...');
+  try {
+    const d = await api('/api/footfall?area=' + encodeURIComponent(area));
+    const mid = f => ((f.min ?? 0) + (f.max ?? f.min ?? 0)) / 2, max = Math.max(...d.forecast.map(mid), 1);
+    const ages = Object.entries(d.age_rates).filter(([, v]) => v != null).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k} ${v}%`).join(' · ');
+    $('footOut').innerHTML =
+      `<div class="out"><b>${esc(d.area)}</b> <span class="badge" style="background:${LEVEL_COLOR[d.congest_level] || '#5d6963'}">${esc(d.congest_level || '정보 없음')}</span><br>` +
+      `현재 인구 <span class="big">${fmt(d.pop_min)} ~ ${fmt(d.pop_max)}명</span><br>` +
+      `<span style="color:var(--muted)">${esc(d.congest_msg || '')}</span><br>` +
+      `상위 연령대 ${esc(ages || '—')} · 비상주 ${d.non_resident_rate ?? '—'}%<br><span style="color:var(--muted)">기준 시각 ${esc(d.updated_at || '—')}</span></div>` +
+      (d.forecast.length ? `<div class="lbl" style="margin-top:12px">향후 ${d.forecast.length}시간 예측 (중앙값)</div><div class="fc">${d.forecast.map(f =>
+        `<div title="${esc(f.time)} · ${fmt(f.min)}~${fmt(f.max)}명 · ${esc(f.level)}"><i style="height:${Math.max(3, mid(f) / max * 78)}px;background:${LEVEL_COLOR[f.level] || '#9aa5a0'}"></i><span>${esc((f.time || '').slice(11, 13))}</span></div>`).join('')}</div>` : '') +
+      `<div class="hint">${esc(d.source)}. 막대 색은 혼잡도입니다.</div>`;
+    setStatus('footStatus', '');
+  } catch (e) { setStatus('footStatus', '유동인구 조회 오류: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+/* ───────── 비교 ───────── */
+let comps = store.load('ri_comps', []);
+const saveComps = () => store.save('ri_comps', comps);
+
+function compNoc(c, g) { return calcNoc({rent: c.rent, fee: c.fee, dep: c.dep, area: c.area, free: c.free}, g); }
+
+async function addComp() {
+  const num = id => Number($(id).value) || 0;
+  const c = {id: Date.now(), name: $('cName').value.trim(), address: $('cAddr').value.trim(), rent: num('cRent'), fee: num('cFee'), dep: num('cDep'), area: num('cArea'), free: num('cFree')};
+  if (c.area <= 0) { setStatus('cStatus', '면적을 입력하세요.', true); return; }
+  if (c.rent <= 0 && c.fee <= 0) { setStatus('cStatus', '임대료 또는 관리비를 입력하세요.', true); return; }
+  const btn = $('cAdd'); btn.disabled = true;
+  try {
+    if (c.address && S.pending && S.pending.address === c.address) {
+      c.lat = S.pending.lat; c.lon = S.pending.lon; c.resolved = S.pending.resolved; S.pending = null;
+    } else if (c.address || c.name) {
+      setStatus('cStatus', '위치를 확인하는 중입니다...');
+      const geo = await geocode(c.address, c.name);
+      if (geo) { c.lat = geo.lat; c.lon = geo.lon; c.resolved = geo.resolved; c.geoBy = geo.how; }
+      else setStatus('cStatus', '위치를 찾지 못해 좌표 없이 추가합니다.', true);
+    }
+    if (!c.name) c.name = c.resolved || c.address || `비교 ${comps.length + 1}`;
+    comps.push(c); saveComps(); renderComps();
+    ['cName', 'cAddr', 'cRent', 'cFee', 'cDep', 'cArea'].forEach(id => $(id).value = ''); $('cFree').value = 0;
+    if (!$('cStatus').classList.contains('err')) setStatus('cStatus', `'${c.name}'을(를) 추가했습니다.`);
+  } catch (e) { setStatus('cStatus', '추가 오류: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+const distM = (a, b, c, d) => { const R = 6371000, p = Math.PI / 180, x = (c - a) * p, y = (d - b) * p; const h = Math.sin(x / 2) ** 2 + Math.cos(a * p) * Math.cos(c * p) * Math.sin(y / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
+function visibleComps() {
+  const km = Number($('cScope').value) || 0;
+  if (!km || !S.sel) return comps;
+  return comps.filter(c => c.lat != null && distM(S.sel.lat, S.sel.lon, c.lat, c.lon) <= km * 1000);
+}
+
+function renderComps() {
+  const g = readMine(), f = unitFactor(g), u = unitLabel(g), myArea = areaOf(g);
+  L_comp.clearLayers();
+  $('cTools').hidden = !comps.length;
+  const vis = visibleComps();
+  V.comps = null; V.compAvgEff = null;
+  const empty = html => { $('cSummary').innerHTML = ''; $('cBars').innerHTML = ''; $('cViz').innerHTML = ''; $('cList').innerHTML = html; renderVerdict(); renderNeg(); };
+  if (!comps.length) { empty('<div class="hint">비교 건물이 없습니다. 위에서 건물명을 검색해 추가하거나 CSV로 가져오세요. <button class="btn-ghost btn-sm" id="goSim">유사 건물 탭에서 후보 찾기</button></div>'); const b = $('goSim'); if (b) b.onclick = () => showTab('similar'); return; }
+  if (!vis.length) { empty(`<div class="hint">선택한 범위 안에 좌표가 있는 비교 건물이 없습니다. (전체 ${comps.length}개)</div>`); return; }
+  const rows = vis.map(c => ({c, r: compNoc(c, g)}));
+  const mine = myArea > 0 ? {c: {name: '내 건물', mine: true}, r: calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area: myArea, free: g.free}, g)} : null;
+  const vals = rows.map(x => x.r.effective).sort((a, b) => a - b);
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const med = vals.length % 2 ? vals[(vals.length - 1) / 2] : (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2;
+  V.compAvgEff = avg;
+  let sum = `<div class="hint" style="margin-top:12px">${vis.length === comps.length ? `비교 건물 ${comps.length}개` : `범위 안 ${vis.length}개 / 전체 ${comps.length}개`} 기준</div>`;
+  if (mine) {
+    const diff = (mine.r.effective / avg - 1) * 100, cheaper = vals.filter(v => v > mine.r.effective).length;
+    V.comps = diff;
+    sum += `<div class="out"><div class="lbl" style="margin:0">비교 건물 평균 대비 내 실효 NOC</div><div class="hero">${diff > 0 ? '▲' : '▼'} ${pct(diff)}</div>` +
+      `<div>내 ${fmt(mine.r.effective * f)} vs 평균 ${fmt(avg * f)} ${u}<br>${vals.length + 1}개 중 <b>${cheaper + 1}번째</b>로 저렴합니다 (1위가 가장 저렴).</div></div>`;
+  } else sum += '<div class="hint">내 건물 면적을 입력하면 비교 결과가 표시됩니다.</div>';
+  sum += `<div class="stat"><div><small>비교군 평균</small><b>${fmt(avg * f)}</b></div><div><small>비교군 중앙값</small><b>${fmt(med * f)}</b></div><div><small>범위</small><b style="font-size:12px">${fmt(vals[0] * f)}~${fmt(vals[vals.length - 1] * f)}</b></div></div>`;
+  $('cSummary').innerHTML = sum;
+
+  const bars = rows.concat(mine ? [mine] : []).sort((a, b) => b.r.effective - a.r.effective);
+  const max = bars[0].r.effective || 1;
+  $('cBars').innerHTML = `<div class="ctitle">실효 NOC 순위 (${u})</div><div class="csub">주황 막대가 내 건물 · 눌러서 지도로 이동</div>` + bars.map(x =>
+    `<div class="cmprow${x.c.mine ? ' mine' : ''}" data-id="${x.c.id ?? ''}"><span class="nm" title="${esc(x.c.name)}">${esc(x.c.name)}</span><span class="track"><span class="fill" style="display:block;width:${x.r.effective / max * 100}%"></span></span><span class="num">${fmt(x.r.effective * f)}</span></div>`).join('');
+  $('cBars').querySelectorAll('.cmprow[data-id]:not([data-id=""])').forEach(el => el.onclick = () => focusComp(Number(el.dataset.id)));
+  $('cBars').querySelectorAll('.cmprow.mine').forEach(el => el.onclick = () => { if (S.home) { focusPlace({name: S.home.title, address: S.home.name ? S.home.addr : '', lat: S.home.lat, lon: S.home.lon}); } });
+
+  // 산점도: 역까지 거리 vs NOC
+  const myX = S.access && S.sel === S.home && S.access.stations && S.access.stations[0] ? S.access.stations[0].straight_distance_m : (S.sim && S.sim.ref ? S.sim.ref.station_m : null);
+  const sp = rows.map(({c, r}) => ({x: c.analysis && has(c.analysis.straight) ? c.analysis.straight : (c.feat && has(c.feat.station_m) ? c.feat.station_m : null), y: r.effective * f, name: c.name})).filter(p => p.x != null);
+  if (mine && has(myX)) sp.push({x: myX, y: mine.r.effective * f, name: '내 건물', mine: true});
+  if (sp.length >= 4) {
+    $('cViz').innerHTML = `<div class="ctitle">역까지 거리와 NOC</div><div class="csub">역에서 멀어질수록 NOC가 낮아지는지 한눈에 봅니다</div><div class="chart" id="cScatter"></div>`;
+    chartScatter($('cScatter'), {points: sp, fmtX: v => v >= 1000 ? (v / 1000).toFixed(1) + 'km' : Math.round(v) + 'm', fmtY: v => compactWon(v), xTitle: '가까운 역까지 직선거리', aria: '역까지 거리와 실효 NOC 산점도'});
+  } else $('cViz').innerHTML = `<div class="hint" style="margin-top:12px">역까지 거리와 NOC 그래프는 거리 정보가 있는 점이 4개 이상일 때 표시됩니다 (현재 ${sp.length}개). 건물 카드의 '입지 분석', 역 접근 탭의 분석, 유사 건물 찾기를 실행하면 채워집니다.</div>`;
+
+  $('cList').innerHTML = rows.map(({c, r}) => {
+    const a = c.analysis;
+    const info = a ? `<br>가까운 역 ${esc(a.station)} · 도보 ${a.walk}분${a.estimated ? ' (추정)' : ''} · 반경 500m 음식점·카페 ${fmt(a.fb)}개` : '';
+    return `<div class="card" data-id="${c.id}"><div class="t">${esc(c.name)}${c.geoBy === 'name' ? '<span class="tag">이름으로 위치 검색</span>' : ''}</div><div class="m">명목 ${fmt(r.nominal * f)} · 실효 ${fmt(r.effective * f)} ${u}<br>임대료 ${fmt(c.rent)} · 관리비 ${fmt(c.fee)} · 보증금 ${fmt(c.dep)} · ${c.area}㎡${c.free ? ` · 렌트프리 ${c.free}개월` : ''}${info}</div>` +
+      `<div class="row" style="margin-top:8px">${c.lat != null ? `<button class="btn-ghost btn-sm" data-act="an" data-id="${c.id}">입지 분석</button>` : ''}<button class="btn-ghost btn-sm" data-act="del" data-id="${c.id}">삭제</button></div></div>`;
+  }).join('');
+  $('cList').querySelectorAll('.card').forEach(el => el.onclick = e => { if (!e.target.closest('button')) focusComp(Number(el.dataset.id)); });
+  $('cList').querySelectorAll('button[data-act]').forEach(b => b.onclick = () => b.dataset.act === 'del' ? delComp(Number(b.dataset.id)) : analyzeComp(Number(b.dataset.id), b));
+
+  // 지도: 비교 건물 위에 NOC 라벨 (▲ = 내 건물보다 비쌈, ▼ = 더 저렴)
+  vis.filter(c => c.lat != null).forEach(c => {
+    const r = compNoc(c, g);
+    L.circleMarker([c.lat, c.lon], {radius: 7, color: '#6b3f8a', fillColor: '#e2c9f3', fillOpacity: .95, weight: 2}).bindPopup(`<b>${esc(c.name)}</b><br>실효 NOC ${fmt(r.effective * f)} ${u}`).addTo(L_comp);
+    if (mine) {
+      const d = (r.effective / mine.r.effective - 1) * 100, cls = d > 3 ? 'hi' : d < -3 ? 'lo' : '';
+      L.marker([c.lat, c.lon], {interactive: false, icon: L.divIcon({className: '', iconSize: [0, 0], html: `<span class="npill ${cls}" style="margin-top:-22px">${d > 3 ? '▲' : d < -3 ? '▼' : '■'} ${compactWon(r.effective * f)}</span>`})}).addTo(L_comp);
+    }
+  });
+  renderVerdict(); renderNeg();
+}
+function markRow(id) {
+  document.querySelectorAll('#cList .card[data-id], #cBars .cmprow[data-id]').forEach(el => el.classList.toggle('focus', Number(el.dataset.id) === id));
+}
+function focusComp(id) {
+  const c = comps.find(x => x.id === id); if (!c) return;
+  markRow(id);
+  if (c.lat != null) focusPlace({name: c.name, address: c.resolved || c.address, lat: c.lat, lon: c.lon});
+  else { showInfo(c.name, c.address || '', NaN, NaN); L_pick.clearLayers(); }
+}
+function delComp(id) { comps = comps.filter(c => c.id !== id); saveComps(); renderComps(); }
+async function analyzeComp(id, btn) {
+  const c = comps.find(x => x.id === id); if (!c) return;
+  btn.disabled = true; btn.textContent = '분석 중...';
+  try {
+    const [acc, com] = await Promise.all([
+      api(`/api/access?longitude=${c.lon}&latitude=${c.lat}`),
+      api(`/api/commercial?longitude=${c.lon}&latitude=${c.lat}&radius=500`)
+    ]);
+    const best = acc.stations[0];
+    c.analysis = {
+      station: best ? best.name : '없음', straight: best ? best.straight_distance_m : null, walk: best ? best.walk.duration_min : null, estimated: best ? best.walk.estimated : false,
+      fb: com.items.filter(i => i.code === 'FD6' || i.code === 'CE7').reduce((a, i) => a + i.count, 0)
+    };
+    saveComps(); renderComps();
+  } catch (e) { setStatus('cStatus', `'${c.name}' 분석 오류: ${e.message}`, true); btn.disabled = false; btn.textContent = '입지 분석'; }
+}
+function exportCsv() {
+  const g = readMine(), f = unitFactor(g);
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const head = ['건물명', '주소', '월임대료', '월관리비', '보증금', '면적㎡', '렌트프리(개월)', `명목NOC(${unitLabel(g)})`, `실효NOC(${unitLabel(g)})`, '가까운역', '도보(분)', '반경500m 음식점·카페'];
+  const lines = [head.map(q).join(',')].concat(comps.map(c => {
+    const r = compNoc(c, g), a = c.analysis || {};
+    return [c.name, c.resolved || c.address, c.rent, c.fee, c.dep, c.area, c.free, Math.round(r.nominal * f), Math.round(r.effective * f), a.station, a.walk, a.fb].map(q).join(',');
+  }));
+  const url = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n')], {type: 'text/csv;charset=utf-8'}));
+  const a = document.createElement('a'); a.href = url; a.download = `noc_comparison_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ───────── 유사 건물 ───────── */
+async function loadHubs() {
+  try {
+    const d = await api('/api/hubs');
+    $('hubChips').innerHTML = d.hubs.map(h => `<label class="chip"><input type="checkbox" value="${esc(h.name)}">${esc(h.name)}</label>`).join('');
+  } catch (e) { $('hubChips').innerHTML = `<span class="hint err">지역 목록을 불러오지 못했습니다: ${esc(e.message)}</span>`; }
+}
+const ndiff = (a, b, off) => Math.min(1, Math.abs(Math.log((a + off) / (b + off))) / Math.log(4));   // 4배 차이면 완전히 다름
+const has = v => v != null && Number.isFinite(v);
+function simGroups(ref, c) {
+  const g = {loc: [], com: [], size: []};
+  if (has(ref.station_m) && has(c.station_m)) g.loc.push(ndiff(ref.station_m, c.station_m, 100));
+  if (ref.counts && c.counts) {
+    g.com.push(ndiff(ref.counts.FD6 + ref.counts.CE7, c.counts.FD6 + c.counts.CE7, 5));
+    g.com.push(ndiff(ref.counts.BK9 + ref.counts.PO3, c.counts.BK9 + c.counts.PO3, 3));
+  }
+  if (has(ref.footprint_m2) && has(c.footprint_m2)) g.size.push(ndiff(ref.footprint_m2, c.footprint_m2, 50));
+  if (has(ref.height_m) && has(c.height_m)) g.size.push(ndiff(ref.height_m, c.height_m, 5));
+  return g;
+}
+const avgArr = a => a.reduce((x, y) => x + y, 0) / a.length;
+function simScore(ref, c, w) {
+  const g = simGroups(ref, c);
+  let num = 0, den = 0;
+  Object.keys(g).forEach(k => { if (g[k].length && w[k] > 0) { num += w[k] * avgArr(g[k]); den += w[k]; } });
+  return den ? Math.round(100 * (1 - num / den)) : null;
+}
+const toPt = d => d == null ? null : Math.round(100 * (1 - d));
+function simGroupPts(ref, c) {            // 입지·상권·규모 각각의 유사도(0~100)
+  const g = simGroups(ref, c);
+  return {loc: g.loc.length ? toPt(avgArr(g.loc)) : null, com: g.com.length ? toPt(avgArr(g.com)) : null, size: g.size.length ? toPt(avgArr(g.size)) : null};
+}
+function simParts(ref, c) {               // 레이더용 5개 항목
+  const ok = (a, b) => has(a) && has(b);
+  return [
+    ['역 거리', ok(ref.station_m, c.station_m) ? toPt(ndiff(ref.station_m, c.station_m, 100)) : null],
+    ['음식·카페', ref.counts && c.counts ? toPt(ndiff(ref.counts.FD6 + ref.counts.CE7, c.counts.FD6 + c.counts.CE7, 5)) : null],
+    ['은행·공공', ref.counts && c.counts ? toPt(ndiff(ref.counts.BK9 + ref.counts.PO3, c.counts.BK9 + c.counts.PO3, 3)) : null],
+    ['건축면적', ok(ref.footprint_m2, c.footprint_m2) ? toPt(ndiff(ref.footprint_m2, c.footprint_m2, 50)) : null],
+    ['높이', ok(ref.height_m, c.height_m) ? toPt(ndiff(ref.height_m, c.height_m, 5)) : null]
+  ];
+}
+const scoreColor = s => s >= 75 ? '#2f7a3d' : s >= 55 ? '#b8921f' : '#8a948f';
+const weights = () => ({loc: Number($('wLoc').value), com: Number($('wCom').value), size: Number($('wSize').value)});
+['wLoc', 'wCom', 'wSize'].forEach(id => $(id).oninput = () => { $(id + 'V').textContent = $(id).value; if (S.sim) renderSimilar(); });
+['simFoot', 'simH'].forEach(id => $(id).addEventListener('change', () => { if (S.sim) renderSimilar(); }));
+
+async function findSimilar() {
+  if (!S.sel) { setStatus('simStatus', '먼저 건물을 검색해 선택하세요.', true); return; }
+  const hubs = [...document.querySelectorAll('#hubChips input:checked')].map(i => i.value);
+  const useComps = $('simComps').checked, compPool = comps.filter(c => c.lat != null);
+  if (!hubs.length && !(useComps && compPool.length)) { setStatus('simStatus', '후보 지역을 한 곳 이상 고르거나, 좌표가 있는 비교 건물을 포함하세요.', true); return; }
+  const btn = $('simBtn'); btn.disabled = true;
+  setStatus('simStatus', '후보 빌딩을 찾고 입지·상권·규모를 계산하는 중입니다. 지역이 많으면 수십 초 걸릴 수 있습니다...');
+  try {
+    let ref, cands = [], notes = [];
+    if (hubs.length) {
+      const base = S.home || S.sel;
+      const d = await api(`/api/similar?latitude=${base.lat}&longitude=${base.lon}&hubs=${encodeURIComponent(hubs.join(','))}`);
+      ref = d.reference; cands = d.candidates; notes = d.notes;
+    }
+    const need = (useComps ? compPool : []).filter(c => !c.feat);
+    const pts = (ref ? [] : [{latitude: (S.home || S.sel).lat, longitude: (S.home || S.sel).lon}]).concat(need.map(c => ({latitude: c.lat, longitude: c.lon})));
+    if (pts.length) {
+      const f = await api('/api/features?points=' + encodeURIComponent(pts.map(p => `${p.latitude},${p.longitude}`).join(';')));
+      let k = 0; if (!ref) ref = f.features[k++];
+      need.forEach(c => { c.feat = f.features[k++]; }); saveComps();
+      if (f.osm_note) notes.push('건물 규모 조회 실패: ' + f.osm_note);
+    }
+    const compCands = (useComps ? compPool : []).map(c => ({...c.feat, id: 'c' + c.id, name: c.name, address: c.resolved || c.address, hub: '내 비교 건물', latitude: c.lat, longitude: c.lon, comp: c}));
+    S.sim = {ref, cands: cands.concat(compCands), notes};
+    renderSimilar();
+    setStatus('simStatus', `후보 ${S.sim.cands.length}곳을 비교했습니다.`);
+  } catch (e) { setStatus('simStatus', '유사 건물 검색 오류: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+function drawRadar() {
+  const el = $('simRadar'); if (!el || !S.sim || !S.sim.shown || !S.sim.shown.length) return;
+  const x = S.sim.shown[Math.min(S.sim.focus || 0, S.sim.shown.length - 1)], parts = simParts(S.sim.refAdj, x.c);
+  chartRadar(el, parts.map(p => p[0]), parts.map(p => p[1]), x.c.name);
+  $('simRadarTitle').textContent = `${(S.sim.focus || 0) + 1}. ${x.c.name} — 내 건물과의 항목별 유사도`;
+  $('simOut').querySelectorAll('.card[data-i]').forEach(c => c.classList.toggle('active', Number(c.dataset.i) === (S.sim.focus || 0)));
+}
+
+function renderSimilar() {
+  const cands = S.sim.cands, notes = S.sim.notes;
+  const ref = {...S.sim.ref};
+  const ov = Number($('simFoot').value), oh = Number($('simH').value);
+  if (ov > 0) ref.footprint_m2 = ov;
+  if (oh > 0) ref.height_m = oh;
+  S.sim.refAdj = ref;
+  const w = weights(), g = readMine(), f = unitFactor(g), u = unitLabel(g);
+  const rows = cands.filter(c => !c.error).map(c => ({c, s: simScore(ref, c, w)})).filter(x => x.s != null).sort((a, b) => b.s - a.s).slice(0, 15);
+  L_sim.clearLayers();
+  V.sim = null; V.simWavgEff = null;
+  const cnt = c => c.counts ? `음식·카페 ${c.counts.FD6 + c.counts.CE7} · 은행·공공 ${c.counts.BK9 + c.counts.PO3}` : '상권 정보 없음';
+  const size = c => has(c.footprint_m2) ? `건축면적 ${fmt(c.footprint_m2)}㎡ · 높이 ${c.height_m}m${c.height_known ? '' : '(가정)'}` : '규모 정보 없음';
+  let html = `<div class="out"><b>내 건물</b><br>가까운 역 ${esc(ref.station_name || '—')} 직선 ${fmt(ref.station_m)}m<br>${cnt(ref)}<br>${size(ref)}</div>`;
+
+  const noc = rows.filter(x => x.c.comp).map(x => ({s: x.s, v: compNoc(x.c.comp, g).effective}));
+  const myArea = areaOf(g);
+  if (noc.length && myArea > 0) {
+    const wavg = noc.reduce((a, x) => a + x.s * x.v, 0) / noc.reduce((a, x) => a + x.s, 0);
+    const mine = calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area: myArea, free: g.free}, g).effective, diff = (mine / wavg - 1) * 100;
+    V.sim = diff; V.simWavgEff = wavg;
+    html += `<div class="out"><div class="lbl" style="margin:0">유사 건물 가중 평균 대비 내 실효 NOC</div><div class="hero">${diff > 0 ? '▲' : '▼'} ${pct(diff)}</div>` +
+      `<div>내 ${fmt(mine * f)} vs 유사도 가중 평균 ${fmt(wavg * f)} ${u}<br><span style="color:var(--muted)">NOC를 입력한 비교 건물 ${noc.length}곳 기준 · 유사도가 높은 건물일수록 더 크게 반영</span></div></div>`;
+  } else html += '<div class="notice">NOC 비교를 하려면 아래 목록에서 건물을 비교 목록에 추가하고 임대 조건을 입력하세요.</div>';
+
+  if (rows.length) html += `<div class="ctitle" id="simRadarTitle"></div><div class="chart" id="simRadar"></div>`;
+  const mt = (lb, v) => `<div>${lb} ${v == null ? '—' : v + '점'}<div class="tr"><i style="width:${v || 0}%"></i></div></div>`;
+  html += rows.map((x, i) => {
+    const c = x.c, gp = simGroupPts(ref, c), nocTxt = c.comp ? `<br>실효 NOC <b>${fmt(compNoc(c.comp, g).effective * f)}</b> ${u}` : '';
+    return `<div class="card${i === 0 ? ' active' : ''}" data-i="${i}"><div class="t"><span class="score" style="background:${scoreColor(x.s)}">${x.s}</span>${i + 1}. ${esc(c.name)}</div>` +
+      `<div class="m">${esc(c.hub)} · 역 ${esc(c.station_name || '—')} 직선 ${fmt(c.station_m)}m<br>${cnt(c)}<br>${size(c)}${nocTxt}</div>` +
+      `<div class="m3">${mt('입지', gp.loc)}${mt('상권', gp.com)}${mt('규모', gp.size)}</div>` +
+      `<div class="row" style="margin-top:8px"><button class="btn-lime btn-sm" data-sim="go" data-i="${i}">이 건물 분석</button>${c.comp ? '' : `<button class="btn-ghost btn-sm" data-sim="add" data-i="${i}">비교 목록에 추가</button>`}</div></div>`;
+  }).join('');
+  if (!rows.length) html += '<div class="hint">점수를 계산할 수 있는 후보가 없습니다.</div>';
+  if (notes.length) html += `<div class="notice warn">${notes.map(esc).join('<br>')}</div>`;
+  html += '<div class="hint">유사도는 입지·상권·규모의 차이(4배 이상 차이 나면 완전히 다름으로 계산)를 중요도 가중치로 합산한 0~100점입니다. 후보 빌딩은 카카오 장소 검색에서 모았기 때문에 일부 건물이 빠질 수 있고, 건물 규모는 OpenStreetMap 정보라 비어 있을 수 있습니다.</div>';
+  $('simOut').innerHTML = html;
+  S.sim.shown = rows;
+  if (S.sim.focus == null || S.sim.focus >= rows.length) S.sim.focus = 0;
+  drawRadar();
+
+  const bounds = [[S.sel.lat, S.sel.lon]];
+  rows.forEach((x, i) => {
+    L.marker([x.c.latitude, x.c.longitude], {icon: L.divIcon({className: '', iconSize: [0, 0], html: `<span class="rk" style="background:${scoreColor(x.s)}">${i + 1}</span>`})})
+      .bindPopup(`<b>${esc(x.c.name)}</b><br>유사도 ${x.s}점 · ${esc(x.c.hub)}`).addTo(L_sim);
+    bounds.push([x.c.latitude, x.c.longitude]);
+  });
+  if (!S.sim.fitted && bounds.length > 1) { map.fitBounds(bounds, {padding: [40, 40]}); S.sim.fitted = true; }
+  $('simOut').querySelectorAll('.card[data-i]').forEach(el => el.onclick = e => {
+    if (e.target.closest('button')) return;
+    S.sim.focus = Number(el.dataset.i); drawRadar();
+    const x = S.sim.shown[S.sim.focus]; focusPlace({name: x.c.name, address: x.c.address, lat: x.c.latitude, lon: x.c.longitude});
+  });
+  $('simOut').querySelectorAll('button[data-sim]').forEach(b => b.onclick = () => {
+    const x = S.sim.shown[Number(b.dataset.i)]; if (!x) return;
+    if (b.dataset.sim === 'map') { S.sim.focus = Number(b.dataset.i); drawRadar(); map.setView([x.c.latitude, x.c.longitude], 18); outlineAt(x.c.latitude, x.c.longitude); return; }
+    if (b.dataset.sim === 'go') {
+      choose({name: x.c.name, address: x.c.address || '', road_address: '', building: true, latitude: x.c.latitude, longitude: x.c.longitude}, {peek: true});
+      setStatus('simStatus', `'${x.c.name}'을(를) 분석 대상으로 바꿨습니다. 위 버튼으로 역 접근·일조·상권을 확인하세요.`);
+      return;
+    }
+    S.pending = {address: x.c.address || x.c.name, lat: x.c.latitude, lon: x.c.longitude, resolved: x.c.address};
+    $('cName').value = x.c.name; $('cAddr').value = S.pending.address;
+    showTab('comp'); $('cRent').focus();
+    setStatus('cStatus', `'${x.c.name}'의 위치를 채웠습니다. 임대 조건을 입력하고 추가하세요.`);
+  });
+  renderVerdict(); renderNeg();
+}
+
+/* ───────── CSV 가져오기 ───────── */
+function parseCsv(text) {
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur); cur = ''; if (row.some(x => x.trim())) rows.push(row); row = []; }
+    else cur += ch;
+  }
+  row.push(cur); if (row.some(x => x.trim())) rows.push(row);
+  return rows;
+}
+async function importCsv(file) {
+  const rows = parseCsv((await file.text()).replace(/^\ufeff/, ''));
+  if (rows.length < 2) { setStatus('cStatus', '데이터 행이 없습니다.', true); return; }
+  const header = rows.shift().map(h => h.replace(/\s/g, ''));
+  const idx = (...names) => header.findIndex(h => names.some(n => h.startsWith(n)));
+  const col = {name: idx('건물명', '이름'), addr: idx('주소'), rent: idx('월임대료', '임대료'), fee: idx('월관리비', '관리비'), dep: idx('보증금'), area: idx('면적'), free: idx('렌트프리')};
+  if (col.area < 0 || (col.rent < 0 && col.fee < 0)) { setStatus('cStatus', 'CSV 헤더에 "면적"과 "월임대료"(또는 "월관리비") 열이 필요합니다. CSV 양식을 받아 사용하세요.', true); return; }
+  const num = v => Number(String(v ?? '').replace(/[,\s원]/g, '')) || 0, cell = (r, k) => col[k] >= 0 ? (r[col[k]] ?? '').trim() : '';
+  const list = rows.slice(0, 100); let ok = 0, noGeo = 0, skipped = 0, byName = 0;
+  $('csvBtn').disabled = true;
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i], c = {id: Date.now() + i, name: cell(r, 'name'), address: cell(r, 'addr'), rent: num(cell(r, 'rent')), fee: num(cell(r, 'fee')), dep: num(cell(r, 'dep')), area: num(cell(r, 'area')), free: num(cell(r, 'free'))};
+    if (c.area <= 0 || (c.rent <= 0 && c.fee <= 0)) { skipped++; continue; }
+    setStatus('cStatus', `가져오는 중 ${i + 1}/${list.length}...`);
+    if (c.address || c.name) {
+      const geo = await geocode(c.address, c.name);
+      if (geo) { c.lat = geo.lat; c.lon = geo.lon; c.resolved = geo.resolved; if (geo.how === 'name') { c.geoBy = 'name'; byName++; } } else noGeo++;
+    }
+    if (!c.name) c.name = c.resolved || c.address || `비교 ${comps.length + 1}`;
+    comps.push(c); ok++;
+  }
+  saveComps(); renderComps(); $('csvBtn').disabled = false;
+  setStatus('cStatus', `${ok}개를 가져왔습니다.` + (byName ? ` ${byName}개는 건물명 검색으로 위치를 찾았으니 지도에서 맞는지 확인하세요.` : '') + (noGeo ? ` 위치를 못 찾은 ${noGeo}개는 좌표 없이 추가했습니다.` : '') + (skipped ? ` 면적·임대료가 없는 ${skipped}행은 건너뛰었습니다.` : '') + (rows.length > 100 ? ' 100행까지만 처리합니다.' : ''), skipped > 0 || noGeo > 0 || byName > 0);
+}
+function csvTemplate() {
+  const url = URL.createObjectURL(new Blob(['\ufeff건물명,주소,월임대료,월관리비,보증금,면적,렌트프리(개월)\r\n'], {type: 'text/csv;charset=utf-8'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'noc_comparison_template.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ───────── 차트 도구 (의존성 없는 SVG) ───────── */
+const C_MKT = '#2a78d6', C_ME = '#eb6834', C_R250 = '#86b6ef', C_R600 = '#184f95';
+const pct = (v, d = 1) => Number.isFinite(v) ? (v > 0 ? '+' : '') + v.toFixed(d) + '%' : '—';
+const compactWon = v => !Number.isFinite(v) ? '—' : Math.abs(v) >= 1e8 ? (v / 1e8).toFixed(1) + '억' : Math.abs(v) >= 1e4 ? (v / 1e4).toFixed(1).replace(/\.0$/, '') + '만' : fmt(v);
+const qLabel = p => /^\d{4}0[1-4]$/.test(p) ? `${p.slice(2, 4)}.${Number(p.slice(5))}Q` : String(p);
+const f1 = n => Number(n).toFixed(1);
+
+function niceTicks(min, max, n = 4) {
+  const span = (max - min) || Math.abs(max) || 1, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
+  const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, t = [];
+  for (let v = lo; v <= hi + step / 2; v += step) t.push(+v.toFixed(10));
+  return t;
+}
+function legendHtml(items) {
+  return `<div class="clegend">${items.map(i => `<span>${i.dash ? `<i class="kline" style="background:repeating-linear-gradient(90deg,${i.color} 0 5px,transparent 5px 8px)"></i>` : i.line ? `<i class="kline" style="background:${i.color}"></i>` : `<i class="kdot" style="background:${i.color}"></i>`}${esc(i.name)}</span>`).join('')}</div>`;
+}
+function tableView(head, rows) {
+  return `<details class="tv"><summary>표로 보기</summary><table><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></details>`;
+}
+function placeTip(el, plot, tt, x, y, W, H, html) {
+  const r = plot.getBoundingClientRect();
+  tt.innerHTML = html; tt.hidden = false;
+  tt.style.left = Math.max(70, Math.min(r.width - 70, x / W * r.width)) + 'px';
+  tt.style.top = (y / H * r.height) + 'px';
+}
+
+/* 꺾은선: cfg {labels, series:[{name,color,values,dashed,markers}], refs:[{name,v,color}], fmtAxis, fmtTip, colHead} */
+function chartLine(el, cfg) {
+  const W = 340, H = cfg.h || 170, m = {l: 46, r: 46, t: 12, b: 22}, n = cfg.labels.length;
+  const vals = [];
+  cfg.series.forEach(s => s.values.forEach(v => { if (v != null && Number.isFinite(v)) vals.push(v); }));
+  (cfg.refs || []).forEach(r => { if (Number.isFinite(r.v)) vals.push(r.v); });
+  if (!n || !vals.length) { el.innerHTML = '<div class="hint">표시할 값이 없습니다.</div>'; return; }
+  let lo = Math.min(...vals), hi = Math.max(...vals); const pv = ((hi - lo) || Math.abs(hi) * .1 || 1) * .15; lo -= pv; hi += pv;
+  const ticks = niceTicks(lo, hi, 4), y0 = ticks[0], y1 = ticks[ticks.length - 1];
+  const X = i => m.l + (n === 1 ? (W - m.l - m.r) / 2 : i * (W - m.l - m.r) / (n - 1));
+  const Y = v => m.t + (1 - (v - y0) / ((y1 - y0) || 1)) * (H - m.t - m.b);
+  let g = '';
+  ticks.forEach(t => { g += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${f1(Y(t))}" y2="${f1(Y(t))}"/><text x="${m.l - 6}" y="${f1(Y(t) + 3)}" text-anchor="end">${cfg.fmtAxis(t)}</text>`; });
+  const step = Math.max(1, Math.ceil(n / 6));
+  cfg.labels.forEach((lb, i) => { if ((n - 1 - i) % step === 0) g += `<text x="${f1(X(i))}" y="${H - 6}" text-anchor="middle">${esc(lb)}</text>`; });
+  g += `<line class="axis" x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}"/>`;
+  (cfg.refs || []).forEach(r => {
+    if (!Number.isFinite(r.v)) return;
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${f1(Y(r.v))}" y2="${f1(Y(r.v))}" stroke="${r.color}" stroke-width="1.5" stroke-dasharray="5 4"/><text class="st" x="${W - m.r + 4}" y="${f1(Y(r.v) + 3)}">${esc(r.short || r.name)}</text>`;
+  });
+  cfg.series.forEach(s => {
+    const pts = s.values.map((v, i) => v == null || !Number.isFinite(v) ? null : [X(i), Y(v)]).filter(Boolean);
+    if (pts.length > 1) g += `<path d="M${pts.map(p => f1(p[0]) + ' ' + f1(p[1])).join('L')}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${s.dashed ? ' stroke-dasharray="5 4"' : ''}/>`;
+    (s.markers === 'all' ? pts : pts.slice(-1)).forEach(p => { g += `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="4" fill="${s.color}" stroke="#fff" stroke-width="2"/>`; });
+  });
+  g += `<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" stroke="#8a948f" stroke-width="1" visibility="hidden"/><g id="xhd"></g><rect id="hit" x="${m.l - 8}" y="0" width="${W - m.l - m.r + 16}" height="${H}" fill="transparent"/>`;
+  const legend = cfg.series.map(s => ({name: s.name, color: s.color, line: !s.dashed, dash: s.dashed})).concat((cfg.refs || []).filter(r => Number.isFinite(r.v)).map(r => ({name: r.name, color: r.color, dash: true})));
+  const rows = cfg.labels.map((lb, i) => [lb].concat(cfg.series.map(s => s.values[i] == null ? '' : cfg.fmtTip(s.values[i]))));
+  el.innerHTML = `<div class="plot" style="position:relative"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.aria || '추이 그래프')}">${g}</svg><div class="tt" hidden></div></div>` +
+    (legend.length >= 2 ? legendHtml(legend) : '') + tableView([cfg.colHead || '기간'].concat(cfg.series.map(s => s.name)), rows);
+  const plot = el.querySelector('.plot'), svg = el.querySelector('svg'), tt = el.querySelector('.tt'), xh = svg.querySelector('#xh'), xhd = svg.querySelector('#xhd');
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(n - 1, n === 1 ? 0 : Math.round((sx - m.l) / ((W - m.l - m.r) / (n - 1)))));
+    xh.setAttribute('x1', X(i)); xh.setAttribute('x2', X(i)); xh.setAttribute('visibility', 'visible');
+    let dots = '', top = H, lines = `<b>${esc(cfg.labels[i])}</b>`;
+    cfg.series.forEach(s => {
+      const v = s.values[i]; if (v == null || !Number.isFinite(v)) return;
+      dots += `<circle cx="${f1(X(i))}" cy="${f1(Y(v))}" r="4" fill="${s.color}" stroke="#fff" stroke-width="2"/>`; top = Math.min(top, Y(v));
+      lines += `<br><i class="kdot" style="background:${s.color}"></i>${esc(s.name)} ${cfg.fmtTip(v)}`;
+    });
+    (cfg.refs || []).forEach(rf => { if (Number.isFinite(rf.v)) lines += `<br><i class="kline" style="background:${rf.color}"></i>${esc(rf.name)} ${cfg.fmtTip(rf.v)}`; });
+    xhd.innerHTML = dots; placeTip(el, plot, tt, X(i), top, W, H, lines);
+  };
+  const hit = svg.querySelector('#hit');
+  hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);
+  hit.addEventListener('pointerleave', () => { tt.hidden = true; xh.setAttribute('visibility', 'hidden'); xhd.innerHTML = ''; });
+}
+
+/* 산점도: cfg {points:[{x,y,name,mine}], fmtX, fmtY, xTitle} */
+function chartScatter(el, cfg) {
+  const W = 340, H = 190, m = {l: 46, r: 14, t: 12, b: 34}, P = cfg.points;
+  const xs = P.map(p => p.x), ys = P.map(p => p.y);
+  const pad = (a, b) => ((b - a) || Math.abs(b) * .2 || 1) * .15;
+  const xt = niceTicks(Math.max(0, Math.min(...xs) - pad(Math.min(...xs), Math.max(...xs))), Math.max(...xs) + pad(Math.min(...xs), Math.max(...xs)), 4);
+  const yt = niceTicks(Math.min(...ys) - pad(Math.min(...ys), Math.max(...ys)), Math.max(...ys) + pad(Math.min(...ys), Math.max(...ys)), 4);
+  const x0 = xt[0], x1 = xt[xt.length - 1], y0 = yt[0], y1 = yt[yt.length - 1];
+  const X = v => m.l + (v - x0) / ((x1 - x0) || 1) * (W - m.l - m.r), Y = v => m.t + (1 - (v - y0) / ((y1 - y0) || 1)) * (H - m.t - m.b);
+  let g = '';
+  yt.forEach(t => { g += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${f1(Y(t))}" y2="${f1(Y(t))}"/><text x="${m.l - 6}" y="${f1(Y(t) + 3)}" text-anchor="end">${cfg.fmtY(t)}</text>`; });
+  xt.forEach(t => { g += `<text x="${f1(X(t))}" y="${H - 18}" text-anchor="middle">${cfg.fmtX(t)}</text>`; });
+  g += `<line class="axis" x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}"/><text x="${(m.l + W - m.r) / 2}" y="${H - 4}" text-anchor="middle">${esc(cfg.xTitle)}</text>`;
+  P.slice().sort((a, b) => (a.mine ? 1 : 0) - (b.mine ? 1 : 0)).forEach(p => {
+    const i = P.indexOf(p);
+    g += `<circle cx="${f1(X(p.x))}" cy="${f1(Y(p.y))}" r="${p.mine ? 6 : 4}" fill="${p.mine ? C_ME : C_MKT}" stroke="#fff" stroke-width="2"/><circle class="pt" data-i="${i}" cx="${f1(X(p.x))}" cy="${f1(Y(p.y))}" r="13" fill="transparent"/>`;
+  });
+  el.innerHTML = `<div class="plot" style="position:relative"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.aria)}">${g}</svg><div class="tt" hidden></div></div>` +
+    legendHtml([{name: '내 건물', color: C_ME}, {name: '비교 건물', color: C_MKT}]) +
+    tableView(['건물', cfg.xTitle, '실효 NOC'], P.map(p => [p.name, cfg.fmtX(p.x), cfg.fmtY(p.y)]));
+  const plot = el.querySelector('.plot'), tt = el.querySelector('.tt');
+  el.querySelectorAll('.pt').forEach(c => {
+    const show = () => { const p = P[Number(c.dataset.i)]; placeTip(el, plot, tt, X(p.x), Y(p.y) - 6, W, H, `<b>${esc(p.name)}</b><br>${esc(cfg.xTitle)} ${cfg.fmtX(p.x)}<br>실효 NOC ${cfg.fmtY(p.y)}`); };
+    c.addEventListener('pointerenter', show); c.addEventListener('pointerdown', show);
+    c.addEventListener('pointerleave', () => { tt.hidden = true; });
+  });
+}
+
+/* 레이더: 내 건물 = 100(주황 점선) 대비 후보의 항목별 유사도 */
+function chartRadar(el, axes, vals, name) {
+  const W = 320, H = 230, cx = 160, cy = 118, R = 70, n = axes.length;
+  const ang = i => -Math.PI / 2 + i * 2 * Math.PI / n, P = (i, r) => [cx + Math.cos(ang(i)) * r, cy + Math.sin(ang(i)) * r];
+  const poly = r => axes.map((_, i) => P(i, r).map(f1).join(',')).join(' ');
+  let g = '';
+  [25, 50, 75].forEach(k => { g += `<polygon points="${poly(R * k / 100)}" fill="none" stroke="#e9eeea" stroke-width="1"/>`; });
+  axes.forEach((_, i) => { const p = P(i, R); g += `<line x1="${cx}" y1="${cy}" x2="${f1(p[0])}" y2="${f1(p[1])}" stroke="#e9eeea" stroke-width="1"/>`; });
+  g += `<polygon points="${poly(R)}" fill="none" stroke="${C_ME}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  g += `<polygon points="${axes.map((_, i) => P(i, R * (vals[i] || 0) / 100).map(f1).join(',')).join(' ')}" fill="${C_MKT}" fill-opacity=".16" stroke="${C_MKT}" stroke-width="2" stroke-linejoin="round"/>`;
+  axes.forEach((a, i) => {
+    if (vals[i] != null) { const p = P(i, R * vals[i] / 100); g += `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="4" fill="${C_MKT}" stroke="#fff" stroke-width="2"><title>${esc(a)} ${vals[i]}점</title></circle>`; }
+    const q = P(i, R + 15), c = Math.cos(ang(i)), anchor = Math.abs(c) < .25 ? 'middle' : c > 0 ? 'start' : 'end';
+    g += `<text class="st" x="${f1(q[0])}" y="${f1(q[1] - 1)}" text-anchor="${anchor}">${esc(a)}</text><text x="${f1(q[0])}" y="${f1(q[1] + 10)}" text-anchor="${anchor}">${vals[i] == null ? '정보 없음' : vals[i] + '점'}</text>`;
+  });
+  el.innerHTML = `<div class="plot"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(name)}와 내 건물의 항목별 유사도">${g}</svg></div>` +
+    legendHtml([{name: '내 건물 (기준 100)', color: C_ME, dash: true}, {name: name, color: C_MKT, line: true}]) +
+    tableView(['항목', '유사도(점)'], axes.map((a, i) => [a, vals[i] == null ? '정보 없음' : String(vals[i])]));
+}
+
+function spark(vals) {
+  const v = vals.filter(Number.isFinite); if (v.length < 2) return '';
+  const lo = Math.min(...v), hi = Math.max(...v), sp = (hi - lo) || 1, W = 100, H = 28;
+  const pts = v.map((x, i) => [3 + i * (W - 6) / (v.length - 1), H - 3 - (x - lo) / sp * (H - 6)]);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts.map(p => p.map(f1).join(',')).join(' ')}" fill="none" stroke="${C_MKT}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+/* ───────── 판정 요약 (KPI 아래 칩) ───────── */
+const V = {market: null, comps: null, sim: null, compAvgEff: null, simWavgEff: null, mktVal: null};
+function renderVerdict() {
+  const chip = (label, p) => `<span class="vchip ${p > 5 ? 'hi' : p < -5 ? 'lo' : ''}" title="내 NOC가 기준보다 ${p > 0 ? '높음' : '낮음'}">${p > 5 ? '▲' : p < -5 ? '▼' : '■'} ${label} ${pct(p)}</span>`;
+  const c = [];
+  if (Number.isFinite(V.market)) c.push(chip('시장 대비', V.market));
+  if (Number.isFinite(V.comps)) c.push(chip('비교 건물 대비', V.comps));
+  if (Number.isFinite(V.sim)) c.push(chip('유사 건물 대비', V.sim));
+  $('verdict').hidden = !c.length;
+  $('verdict').innerHTML = c.join('');
+}
+
+/* ───────── 내 NOC를 시장 통계 정의에 맞추기 ───────── */
+function rentFactor(g) {            // 계약기간 평균: 임대료 1원당 실제로 내는 월 평균 금액(렌트프리·인상 반영)
+  let s = 0;
+  for (let m = 1; m <= g.term; m++) if (m > (g.free || 0)) s += Math.pow(1 + g.esc, Math.floor((m - 1) / 12));
+  return s / g.term;
+}
+function myBasis(opt, g = readMine()) {   // 원/㎡·월
+  const area = opt.area === 'ex' ? g.areaEx : g.areaLease;
+  if (!(area > 0)) return null;
+  const R = opt.eff ? rentFactor(g) : 1;
+  return (g.rent * R + (opt.fee ? g.fee : 0) + (opt.dep ? g.dep * g.rate / 12 : 0)) / area;
+}
+function solveRent(target, opt, g) {      // 목표(원/㎡·월)가 되려면 필요한 월 임대료
+  const area = opt.area === 'ex' ? g.areaEx : g.areaLease;
+  const R = opt.eff ? rentFactor(g) : 1;
+  return (target * area - (opt.fee ? g.fee : 0) - (opt.dep ? g.dep * g.rate / 12 : 0)) / R;
+}
+
+/* ───────── NOC 탭: 비용 구성 · 연차별 · 보증금 환산율 민감도 ───────── */
+function renderNocViz(r, g) {
+  const f = unitFactor(g), u = unitLabel(g), area = areaOf(g), T = g.term;
+  const fee = g.fee, dep = g.dep * g.rate / 12, rentAvg = Math.max(0, r.effectiveMonthly - fee - dep), tot = rentAvg + fee + dep || 1;
+  const parts = [
+    {n: '임대료', v: rentAvg, c: C_R600, t: '#fff'},
+    {n: '관리비', v: fee, c: C_MKT, t: '#fff'},
+    {n: '보증금 환산', v: dep, c: C_R250, t: 'var(--ink)'}
+  ];
+  let html = `<div class="ctitle">월 비용 구성 (계약기간 평균)</div><div class="csub">${u} 기준 · 임대료는 렌트프리·인상을 반영한 평균</div>` +
+    `<div class="stack">${parts.filter(p => p.v > 0).map(p => `<span style="flex:${p.v};background:${p.c};color:${p.t}" title="${p.n} ${fmt(p.v / area * f)} ${u}">${p.v / tot > .12 ? Math.round(p.v / tot * 100) + '%' : ''}</span>`).join('')}</div>` +
+    legendHtml(parts.map(p => ({name: `${p.n} ${fmt(p.v / area * f)} (${Math.round(p.v / tot * 100)}%)`, color: p.c})));
+  // 연차별 월평균 비용
+  const years = Math.ceil(T / 12), yr = [];
+  for (let y = 0; y < years; y++) {
+    let s = 0, c = 0;
+    for (let m = y * 12 + 1; m <= Math.min(T, (y + 1) * 12); m++) { s += (m <= g.free ? 0 : g.rent * Math.pow(1 + g.esc, y)) + fee + dep; c++; }
+    yr.push(s / c / area * f);
+  }
+  const ymax = Math.max(...yr, 1);
+  html += `<div class="ctitle">계약 연차별 월 NOC</div><div class="csub">렌트프리와 연 인상률이 연차마다 어떻게 반영되는지 보여줍니다</div>` +
+    `<div class="fc" style="height:112px">${yr.map((v, i) => `<div title="${i + 1}년차 ${fmt(v)} ${u}"><i style="height:${Math.max(4, v / ymax * 66)}px;background:${C_MKT};border-radius:4px 4px 0 0"></i><span style="color:var(--ink);font-weight:700">${compactWon(v)}</span><span>${i + 1}년차</span></div>`).join('')}</div>`;
+  // 환산율 민감도
+  const rates = [...new Set([6, 8, 10, 12, 15, Math.round(g.rate * 1000) / 10])].sort((a, b) => a - b);
+  const at = rt => calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area, free: g.free}, {...g, rate: rt / 100});
+  html += `<div class="ctitle">보증금 환산율에 따른 NOC</div><div class="csub">보증금이 큰 건물일수록 환산율 가정에 따라 순위가 바뀝니다 (${u})</div>` +
+    `<table class="sens"><tr><th></th>${rates.map(rt => `<th>${rt}%</th>`).join('')}</tr>` +
+    `<tr><th>명목</th>${rates.map(rt => `<td class="${Math.abs(rt - g.rate * 100) < .05 ? 'cur' : ''}">${fmt(at(rt).nominal * f)}</td>`).join('')}</tr>` +
+    `<tr><th>실효</th>${rates.map(rt => `<td class="${Math.abs(rt - g.rate * 100) < .05 ? 'cur' : ''}">${fmt(at(rt).effective * f)}</td>`).join('')}</tr></table>`;
+  $('nocViz').innerHTML = html;
+}
+
+/* ───────── 분기별 NOC 이력 ───────── */
+let hist = store.load('ri_hist', []);
+const curQuarter = () => { const d = new Date(); return `${d.getFullYear()}0${Math.floor(d.getMonth() / 3) + 1}`; };
+function renderHist() {
+  const el = $('histChips'); if (!el) return;
+  const g0 = readMine(), f = unitFactor(g0);
+  el.innerHTML = hist.length ? hist.map(h => {
+    const a = h.g.basis === 'ex' ? h.g.areaEx : h.g.areaLease, v = a > 0 ? calcNoc({rent: h.g.rent, fee: h.g.fee, dep: h.g.dep, area: a, free: h.g.free}, h.g).effective * f : NaN;
+    return `<span class="chip hist" title="${qLabel(h.q)} 저장 시점의 입력값으로 계산한 실효 NOC">${qLabel(h.q)} · ${fmt(v)}<button class="btn-x" data-q="${h.q}" aria-label="${qLabel(h.q)} 이력 삭제">×</button></span>`;
+  }).join('') : '<span class="hint">저장된 이력이 없습니다. 매 분기 계약 조건을 저장하면 시세 그래프에 점으로 표시됩니다.</span>';
+  el.querySelectorAll('.btn-x').forEach(b => b.onclick = () => { hist = hist.filter(h => h.q !== b.dataset.q); store.save('ri_hist', hist); renderHist(); renderMarket(); });
+}
+function saveHist() {
+  const g = readMine(), q = curQuarter();
+  hist = hist.filter(h => h.q !== q); hist.push({q, g}); hist.sort((a, b) => a.q.localeCompare(b.q));
+  store.save('ri_hist', hist); renderHist(); renderMarket();
+}
+
+/* ───────── 시세 탭 (한국부동산원 R-ONE) ───────── */
+const M = {data: null, loading: false, tried: false, configured: undefined,
+  items: store.load('ri_items', {}), region: store.load('ri_region', ''), ids: store.load('ri_rone_ids', {}),
+  manual: store.load('ri_manual', null), opt: Object.assign({fee: false, dep: false, eff: false, area: 'lease'}, store.load('ri_mopt', {}))};
+const GU_REGION = {'종로구': ['도심'], '중구': ['도심'], '용산구': ['도심'], '강남구': ['강남'], '서초구': ['강남'], '영등포구': ['여의도'], '마포구': ['마포', '여의도'], '송파구': ['송파', '잠실', '기타']};
+
+function initMarketUi() {
+  $('mFee').checked = M.opt.fee; $('mDep').checked = M.opt.dep; $('mEff').checked = M.opt.eff; $('mArea').value = M.opt.area;
+  ['mFee', 'mDep', 'mEff', 'mArea'].forEach(id => $(id).onchange = () => {
+    M.opt = {fee: $('mFee').checked, dep: $('mDep').checked, eff: $('mEff').checked, area: $('mArea').value};
+    store.save('ri_mopt', M.opt); renderMarket(); renderHist();
+  });
+  $('mRegion').onchange = () => { M.region = $('mRegion').value; store.save('ri_region', M.region); renderMarket(); };
+  $('mLoad').onclick = () => loadMarket();
+  $('negCustom').oninput = renderNeg;
+  $('idRent').value = M.ids.rent || ''; $('idVac').value = M.ids.vacancy || ''; $('idIdx').value = M.ids.index || '';
+  if (M.manual) $('mManual').value = Math.round(M.manual * unitFactor(readMine()));
+  $('mManual').onchange = () => { const v = Number($('mManual').value); M.manual = v > 0 ? v / unitFactor(readMine()) : null; store.save('ri_manual', M.manual); renderMarket(); };
+  $('idSave').onclick = () => {
+    M.ids = {}; if ($('idRent').value.trim()) M.ids.rent = $('idRent').value.trim(); if ($('idVac').value.trim()) M.ids.vacancy = $('idVac').value.trim(); if ($('idIdx').value.trim()) M.ids.index = $('idIdx').value.trim();
+    store.save('ri_rone_ids', M.ids); M.items = {}; store.save('ri_items', M.items); loadMarket();
+  };
+  $('tblBtn').onclick = searchTables;
+  $('tblQ').addEventListener('keydown', e => { if (e.key === 'Enter') searchTables(); });
+}
+async function searchTables() {
+  const q = $('tblQ').value.trim(), box = $('tblOut'); if (!q) return;
+  box.innerHTML = '<div class="hint">검색 중...</div>';
+  try {
+    const d = await api('/api/rone/tables?q=' + encodeURIComponent(q));
+    box.innerHTML = d.tables.length ? d.tables.map(t => `<div class="result" style="cursor:default"><b>${esc(t.name)}</b><small>${esc(t.id)} ${t.cycle ? '· ' + esc(t.cycle) : ''}</small><div class="row" style="margin-top:6px"><button class="btn-ghost btn-sm" data-k="idRent" data-id="${esc(t.id)}">임대료로</button><button class="btn-ghost btn-sm" data-k="idVac" data-id="${esc(t.id)}">공실률로</button><button class="btn-ghost btn-sm" data-k="idIdx" data-id="${esc(t.id)}">지수로</button></div></div>`).join('') + (d.count > d.tables.length ? `<div class="hint">${d.count}개 중 ${d.tables.length}개만 표시합니다. 검색어를 더 구체적으로 입력하세요.</div>` : '') : '<div class="hint">일치하는 통계표가 없습니다.</div>';
+    box.querySelectorAll('button[data-k]').forEach(b => b.onclick = () => { $(b.dataset.k).value = b.dataset.id; });
+  } catch (e) { box.innerHTML = `<div class="hint err">${esc(e.message)}</div>`; }
+}
+function onMarketTab() {
+  if (M.configured && !M.data && !M.tried) { M.tried = true; loadMarket(); } else renderMarket();
+}
+async function loadMarket() {
+  if (M.loading) return;
+  M.loading = true; M.tried = true; $('mLoad').disabled = true;
+  setStatus('mStatus', '한국부동산원 R-ONE에서 불러오는 중입니다. 통계표 3종 × 12분기를 조회하므로 처음에는 수십 초 걸릴 수 있습니다...');
+  try {
+    const q = new URLSearchParams({quarters: 12});
+    if (M.ids.rent) q.set('rent_id', M.ids.rent); if (M.ids.vacancy) q.set('vacancy_id', M.ids.vacancy); if (M.ids.index) q.set('index_id', M.ids.index);
+    M.data = await api('/api/rone/market?' + q);
+    if (!M.data.configured) setStatus('mStatus', '서버 .env에 RONE_API_KEY가 없어 공공통계를 불러올 수 없습니다. 아래 "통계표 설정 · 직접 입력"에서 시세를 직접 입력해 비교할 수 있습니다.', true);
+    else {
+      const errs = Object.entries(M.data.kinds).filter(([, v]) => v.error).map(([k, v]) => `${{rent: '임대료', vacancy: '공실률', index: '임대가격지수'}[k]}: ${v.error}`);
+      setStatus('mStatus', errs.length ? errs.join(' / ') : '시세를 불러왔습니다.', errs.length > 0);
+    }
+  } catch (e) { M.data = null; setStatus('mStatus', '시세 조회 오류: ' + e.message, true); }
+  finally { M.loading = false; $('mLoad').disabled = false; }
+  renderMarket();
+}
+function mpick(kind) {
+  const k = M.data && M.data.kinds && M.data.kinds[kind];
+  if (!k || k.error || !k.items || !k.items.length) return null;
+  const pref = {rent: /임대료/, vacancy: /공실/, index: /지수/}[kind];
+  const it = k.items.find(x => x.key === M.items[kind]) || k.items.find(x => pref.test(x.key) && !/보증금/.test(x.key)) || k.items[0];
+  return {k, it};
+}
+function autoRegion(regs) {
+  const hs = S.home || S.sel, gu = hs && hs.gu, keys = (GU_REGION[gu] || []).concat(['서울']);
+  for (const key of keys) { const m = regs.filter(r => r.name.includes(key)); if (m.length) return m.sort((a, b) => a.name.length - b.name.length)[0]; }
+  return regs[0];
+}
+function regionFor(it) {
+  const regs = it.regions.filter(r => r.points.length); if (!regs.length) return null;
+  if (M.region) { const m = regs.find(r => r.name === M.region) || regs.find(r => r.name.includes(M.region) || M.region.includes(r.name)); if (m) return m; }
+  return autoRegion(regs);
+}
+const lastTwo = pts => [pts[pts.length - 1], pts[pts.length - 2]];
+
+function renderMarket() {
+  const out = $('mOut'); if (!out) return;
+  const g = readMine(), f = unitFactor(g), u = unitLabel(g), mine = myBasis(M.opt, g);
+  const R = mpick('rent'), VC = mpick('vacancy'), IX = mpick('index');
+  const reg = R ? regionFor(R.it) : null, pts = reg ? reg.points : [], latest = pts.length ? pts[pts.length - 1] : null;
+  // 권역 선택 목록
+  const sel = $('mRegion'), names = R ? R.it.regions.filter(r => r.points.length).map(r => r.name) : [];
+  sel.innerHTML = `<option value="">자동${S.sel && S.sel.gu ? ` (${esc(S.sel.gu)} → ${esc(reg ? reg.name : '—')})` : ''}</option>` + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  sel.value = names.includes(M.region) ? M.region : '';
+  sel.disabled = !names.length;
+  // 통계표 안내
+  const disc = M.data && M.data.tables;
+  $('mDisc').innerHTML = disc ? Object.entries(disc).map(([k, v]) => `${{rent: '임대료', vacancy: '공실률', index: '임대가격지수'}[k]}: ${v.selected ? `<b>${esc(v.name || v.selected)}</b> (${esc(v.selected)})${v.forced ? ' · 직접 지정' : ''}` : '<span class="err">찾지 못함</span>'}`).join('<br>') + `<br>전체 통계표 ${M.data.total_tables}개 중 이름으로 자동 탐색했습니다. 맞지 않으면 위에서 직접 지정하세요.` : '';
+
+  const mkt = latest ? latest.value : (M.manual || null);
+  V.mktVal = mkt; V.market = (mkt && mine) ? (mine / mkt - 1) * 100 : null;
+  if (!mkt) {
+    out.innerHTML = `<div class="notice">${M.configured === false ? '서버에 R-ONE 키(RONE_API_KEY)가 없습니다. ' : ''}아직 불러온 시세가 없습니다. 위의 <b>시세 불러오기</b>를 누르거나, 아래 "통계표 설정 · 직접 입력"에 권역 평균 임대료를 직접 넣어 비교하세요.</div>`;
+    renderVerdict(); renderNeg(); return;
+  }
+  if (!mine) { out.innerHTML = '<div class="notice warn">NOC 탭에서 선택한 면적 기준의 면적이 0보다 커야 비교할 수 있습니다.</div>'; V.market = null; renderVerdict(); renderNeg(); return; }
+
+  const gap = V.market, tag = gap > 5 ? '시장보다 비쌈' : gap < -5 ? '시장보다 저렴' : '시장 수준';
+  const defTxt = `${M.opt.fee ? '임대료+관리비' : '임대료'}${M.opt.dep ? '+보증금 환산' : ''} · ${M.opt.eff ? '렌트프리·인상 반영' : '명목'} · ${M.opt.area === 'ex' ? '전용' : '임대'}면적 기준`;
+  let html = '';
+  // 항목 선택 (통계표에 항목이 여럿일 때)
+  const sels = [['rent', R, '임대료 항목'], ['vacancy', VC, '공실률 항목'], ['index', IX, '지수 항목']].filter(x => x[1] && x[1].k.items.length > 1);
+  if (sels.length) html += `<div class="fields" style="margin-top:12px">${sels.map(([k, p, lb]) => `<div class="${sels.length === 1 ? 'span2' : ''}"><label>${lb}</label><select data-item="${k}">${p.k.items.map(i => `<option value="${esc(i.key)}"${i.key === p.it.key ? ' selected' : ''}>${esc(i.key)}</option>`).join('')}</select></div>`).join('')}</div>`;
+  html += `<div class="out"><div class="lbl" style="margin:0">시장 대비 내 NOC · ${latest ? `${esc(reg.name)} · ${qLabel(latest.period)}` : '직접 입력한 시세'}</div>` +
+    `<div class="hero">${gap > 0 ? '▲' : '▼'} ${pct(gap)}</div>` +
+    `<div><b>${tag}</b> · 내 ${fmt(mine * f)} ${u} vs 시장 ${fmt(mkt * f)} ${u}</div>` +
+    `<div class="hint">비교 정의: ${defTxt}. 위 체크박스로 정의를 바꿔 보세요.</div></div>`;
+
+  // 타일 3개
+  const tile = (label, pk, fmtv, delta) => {
+    if (!pk) return `<div class="tile"><small>${label}</small><b>—</b><em>데이터 없음</em></div>`;
+    const rg = regionFor(pk.it); if (!rg) return `<div class="tile"><small>${label}</small><b>—</b><em>권역 없음</em></div>`;
+    const [a, b] = lastTwo(rg.points), d = delta(rg.points);
+    return `<div class="tile" title="${esc(rg.name)} · ${esc(pk.it.key)}"><small>${label}</small><b>${fmtv(a.value)}</b><em>${d}</em>${spark(rg.points.map(p => p.value))}</div>`;
+  };
+  const yoy = pts2 => pts2.length >= 5 ? (pts2[pts2.length - 1].value / pts2[pts2.length - 5].value - 1) * 100 : null;
+  const arrow = v => v == null ? '' : v > 0 ? '▲' : v < 0 ? '▼' : '■';
+  html += `<div class="tiles">` +
+    tile('공실률', VC, v => v.toFixed(1) + '%', p => { if (p.length < 2) return ''; const d = p[p.length - 1].value - p[p.length - 2].value; return `${arrow(d)} 전분기 ${d > 0 ? '+' : ''}${d.toFixed(1)}%p`; }) +
+    tile('임대가격지수', IX, v => v.toFixed(1), p => { const v = yoy(p); return v == null ? '' : `${arrow(v)} 1년 ${pct(v)}`; }) +
+    tile('임대료 변동', R, v => compactWon(v * f), p => { const v = yoy(p); return v == null ? '' : `${arrow(v)} 1년 ${pct(v)}`; }) + `</div>`;
+
+  // 추이 차트
+  if (pts.length) {
+    html += `<div class="ctitle">${esc(reg.name)} 오피스 임대료 추이와 내 NOC</div><div class="csub">${u} · ${esc(R.it.key)} · 점선은 현재 입력한 내 NOC</div><div class="chart" id="mktChart"></div>`;
+  }
+  // 권역 비교 막대
+  if (R) {
+    const rows = R.it.regions.filter(r => r.points.length).map(r => ({name: r.name, v: r.points[r.points.length - 1].value * f, sel: reg && r.name === reg.name})).sort((a, b) => b.v - a.v).slice(0, 10);
+    const mx = Math.max(...rows.map(r => r.v), mine * f) * 1.05;
+    html += `<div class="ctitle">권역별 최신 임대료</div><div class="csub">${u} · 주황 세로선이 내 NOC (${esc(defTxt.split(' · ')[0])})</div><div class="cmp">` +
+      rows.map(r => `<div class="cmprow" style="cursor:default"><span class="nm" title="${esc(r.name)}"${r.sel ? ' style="font-weight:800"' : ''}>${r.sel ? '● ' : ''}${esc(r.name)}</span><span class="track" style="position:relative;overflow:visible"><span class="fill" style="display:block;width:${r.v / mx * 100}%;${r.sel ? `background:${C_R600}` : ''}"></span><i style="position:absolute;top:-3px;bottom:-3px;left:${mine * f / mx * 100}%;width:2px;background:${C_ME};border-radius:1px"></i></span><span class="num">${fmt(r.v)}</span></div>`).join('') + `</div>`;
+  }
+  html += `<div class="hint">출처: ${esc((M.data && M.data.source) || '직접 입력')}. 한국부동산원 임대료는 건물 계약 조건이 아닌 표본 조사 평균이며, 관리비·보증금 처리와 면적 기준이 NOC와 다를 수 있습니다.</div>`;
+  out.innerHTML = html;
+  out.querySelectorAll('select[data-item]').forEach(s => s.onchange = () => { M.items[s.dataset.item] = s.value; store.save('ri_items', M.items); renderMarket(); });
+
+  if (pts.length) {
+    const labels = pts.map(p => qLabel(p.period));
+    const series = [{name: reg.name + ' 시장', color: C_MKT, values: pts.map(p => p.value * f)}];
+    const hv = pts.map(p => { const h = hist.find(x => x.q === p.period); const b = h ? myBasis(M.opt, h.g) : null; return b == null ? null : b * f; });
+    if (hv.some(v => v != null)) series.push({name: '저장한 내 NOC', color: C_ME, values: hv, markers: 'all'});
+    chartLine($('mktChart'), {labels, series, refs: [{name: '내 NOC(현재)', short: '내 NOC', v: mine * f, color: C_ME}], fmtAxis: v => compactWon(v), fmtTip: v => `${fmt(v)}`, aria: `${reg.name} 오피스 임대료 추이`});
+  }
+  renderVerdict(); renderNeg();
+}
+
+/* ───────── 협상 시뮬레이터 ───────── */
+function renderNeg() {
+  const el = $('mNeg'); if (!el) return;
+  const g = readMine(), f = unitFactor(g), u = unitLabel(g);
+  if (!(areaOf(g) > 0) || !(g.rent > 0)) { el.innerHTML = '<div class="hint">NOC 탭에서 임대료와 면적을 입력하세요.</div>'; return; }
+  const full = {fee: true, dep: true, eff: true, area: g.basis}, T = [];
+  if (V.mktVal) T.push({name: '권역 시세', v: V.mktVal, opt: M.opt, note: '시장 통계 정의 기준'});
+  if (V.compAvgEff) T.push({name: '비교 건물 평균', v: V.compAvgEff, opt: full, note: '실효 NOC 기준'});
+  if (V.simWavgEff) T.push({name: '유사 건물 가중 평균', v: V.simWavgEff, opt: full, note: '실효 NOC 기준'});
+  const cu = Number($('negCustom').value);
+  if (cu > 0) T.push({name: '직접 정한 목표', v: cu / f, opt: full, note: '실효 NOC 기준'});
+  if (!T.length) { el.innerHTML = '<div class="hint">시세를 불러오거나 비교 건물을 입력하면 목표별 계산이 표시됩니다.</div>'; return; }
+  const Rf = rentFactor(g);
+  el.innerHTML = T.map(t => {
+    const req = solveRent(t.v, t.opt, g), delta = g.rent - req;
+    const head = `<div class="lbl" style="margin:0">목표: ${t.name} · ${fmt(t.v * f)} ${u} <span style="color:var(--muted)">(${t.note})</span></div>`;
+    if (!(req > 0)) return `<div class="negbox">${head}<div>관리비·보증금 환산액만으로 이미 목표를 넘어 임대료 조정으로는 도달할 수 없습니다. 관리비·보증금 조건을 함께 협상해야 합니다.</div></div>`;
+    if (delta <= 0) return `<div class="negbox">${head}<div>현재 임대료가 이미 목표 이하입니다 (필요 임대료 ${fmt(req)}원 대비 ${fmt(-delta)}원 낮음). 협상 여지가 작습니다.</div></div>`;
+    const k = delta * Rf * g.term / g.rent;
+    return `<div class="negbox">${head}<div class="row2"><span>필요한 월 임대료</span><b class="big">${fmt(req)}원 (${pct(-delta / g.rent * 100)})</b></div>` +
+      `<div class="row2"><span>연 임대료 절감</span><b>${fmt(delta * 12)}원</b></div>` +
+      `<div class="row2"><span>같은 효과의 렌트프리</span><b>약 ${k.toFixed(1)}개월 추가</b></div></div>`;
+  }).join('') + '<div class="hint">관리비·보증금·면적은 그대로이고 월 임대료만 조정한다고 가정합니다. 렌트프리 환산은 계약기간 전체 임대료 절감액을 월 임대료로 나눈 값입니다.</div>';
+}
+
+/* ───────── 리포트 인쇄 / PDF ───────── */
+function printReport() {
+  const g = readMine(), f = unitFactor(g), u = unitLabel(g), area = areaOf(g);
+  const r = area > 0 ? calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area, free: g.free}, g) : null;
+  const today = new Date().toLocaleDateString('ko-KR');
+  let h = `<h1>임대차 NOC 비교 리포트</h1><div class="foot" style="margin:0">${today} · ${esc(S.sel ? S.sel.title + (S.sel.name ? ' (' + S.sel.addr + ')' : '') : '선택한 건물 없음')}</div>`;
+  h += `<h2>내 건물</h2><div class="kv"><div>명목 NOC<b>${r ? fmt(r.nominal * f) : '—'}</b>${u}</div><div>실효 NOC<b>${r ? fmt(r.effective * f) : '—'}</b>${u}</div><div>가까운 역<b style="font-size:13px">${esc($('kStation').textContent)}</b>${esc($('kWalk').textContent)}</div><div>입면 평균 직사광<b>${esc($('kSun').textContent)}</b>${esc($('kSunSub').textContent)}</div></div>`;
+  h += `<div class="foot">입력: 월 임대료 ${fmt(g.rent)}원 · 관리비 ${fmt(g.fee)}원 · 보증금 ${fmt(g.dep)}원(환산율 ${f1(g.rate * 100)}%) · 임대 ${g.areaLease}㎡ / 전용 ${g.areaEx}㎡ · ${g.term}개월 · 렌트프리 ${g.free}개월 · 인상률 ${f1(g.esc * 100)}%</div>`;
+  const vs = [['시장', V.market], ['비교 건물', V.comps], ['유사 건물', V.sim]].filter(x => Number.isFinite(x[1]));
+  if (vs.length) h += `<h2>요약</h2><div class="kv">${vs.map(([n, v]) => `<div>${n} 대비<b>${v > 0 ? '▲' : '▼'} ${pct(v)}</b>${v > 5 ? '높음' : v < -5 ? '낮음' : '비슷함'}</div>`).join('')}</div>`;
+  const svg = document.querySelector('#mktChart svg');
+  if (svg && Number.isFinite(V.market)) h += `<h2>권역 시세 (한국부동산원 R-ONE)</h2><div class="foot" style="margin:0">내 NOC 비교 정의: ${esc($('mOut').querySelector('.hint') ? $('mOut').querySelector('.hint').textContent.replace('비교 정의: ', '').split('. 위')[0] : '')}</div><div class="chart" style="max-width:520px">${svg.outerHTML}</div>`;
+  const vis = visibleComps();
+  if (vis.length && area > 0) {
+    const rows = vis.map(c => ({c, r: compNoc(c, g)})).sort((a, b) => b.r.effective - a.r.effective);
+    h += `<h2>비교 건물 (${vis.length}개)</h2><table><tr><th>건물</th><th>명목 NOC</th><th>실효 NOC</th><th>내 건물 대비</th><th>역 · 도보</th></tr>` +
+      `<tr><td><b>내 건물</b></td><td>${fmt(r.nominal * f)}</td><td>${fmt(r.effective * f)}</td><td>—</td><td>${esc($('kStation').textContent)}</td></tr>` +
+      rows.map(({c, r: q}) => `<tr><td>${esc(c.name)}</td><td>${fmt(q.nominal * f)}</td><td>${fmt(q.effective * f)}</td><td>${pct((q.effective / r.effective - 1) * 100)}</td><td>${c.analysis ? esc(c.analysis.station) + ' ' + (c.analysis.walk ?? '—') + '분' : '—'}</td></tr>`).join('') + `</table>`;
+  }
+  if (S.sim && S.sim.shown && S.sim.shown.length) {
+    h += `<h2>유사 건물 상위 5</h2><table><tr><th>건물</th><th>유사도</th><th>지역</th><th>역 직선거리</th><th>실효 NOC</th></tr>` +
+      S.sim.shown.slice(0, 5).map(x => `<tr><td>${esc(x.c.name)}</td><td>${x.s}</td><td>${esc(x.c.hub)}</td><td>${fmt(x.c.station_m)}m</td><td>${x.c.comp && area > 0 ? fmt(compNoc(x.c.comp, g).effective * f) : '—'}</td></tr>`).join('') + `</table>`;
+  }
+  h += `<div class="foot">NOC = (월 임대료 + 월 관리비 + 보증금 × 환산율 ÷ 12) ÷ 면적. 실효 NOC는 렌트프리와 연 임대료 인상을 계약기간 평균으로 반영합니다. 일조는 OpenStreetMap 건물 외곽선·높이 기반 추정, 상권은 카카오 장소 데이터, 시세는 한국부동산원 R-ONE 표본 통계입니다. 참고용이며 계약 판단 전 원자료를 확인하세요.</div>`;
+  $('report').innerHTML = h;
+  document.body.classList.add('printing');
+  setTimeout(() => window.print(), 60);
+}
+window.addEventListener('afterprint', () => document.body.classList.remove('printing'));
+
+/* 주소 → 좌표, 실패하면 건물명으로 장소 검색 */
+async function geocode(addr, name) {
+  if (addr) {
+    try { const a = await api('/api/address?query=' + encodeURIComponent(addr)); if (a.length) return {lat: a[0].latitude, lon: a[0].longitude, resolved: a[0].road_address || a[0].address, how: 'address'}; } catch {}
+  }
+  const q = [name, addr].find(x => x && x.length >= 2);
+  if (!q) return null;
+  try {
+    const d = await api('/api/search?mode=suggest&query=' + encodeURIComponent(q));
+    const p = d.places.find(x => x.building) || d.places[0];
+    if (p) return {lat: p.latitude, lon: p.longitude, resolved: p.road_address || p.address, how: 'name'};
+  } catch {}
+  return null;
+}
+
+/* ───────── AI 질문 ───────── */
+async function askAi() {
+  const q = $('aiQ').value.trim();
+  if (q.length < 2) { setStatus('aiStatus', '질문을 입력하세요.', true); return; }
+  if (!comps.length) { setStatus('aiStatus', '비교 건물이 없습니다. 비교 탭에서 건물을 추가하거나 CSV로 가져온 뒤 질문하세요.', true); return; }
+  const g = readMine(), mineEff = areaOf(g) > 0 ? calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area: areaOf(g), free: g.free}, g).effective : null;
+  const rows = comps.map(c => {
+    const r = compNoc(c, g), a = c.analysis || {}, ft = c.feat || {}, loc = c.resolved || c.address || '';
+    return {id: c.id, name: c.name, address: loc, gu: (loc.match(/([가-힣]+구)(?=\s|$)/) || [])[1] || null,
+      noc_py: Math.round(r.effective * PY), noc_m2: Math.round(r.effective), nominal_noc_py: Math.round(r.nominal * PY),
+      rent: c.rent, fee: c.fee, deposit: c.dep, area_m2: c.area, area_py: Math.round(c.area / PY), free_months: c.free,
+      station_m: a.straight ?? ft.station_m ?? null, walk_min: a.walk ?? null, footprint_m2: ft.footprint_m2 ?? null};
+  });
+  const me = {name: S.home ? S.home.title : '내 건물', gu: S.home ? S.home.gu : null, noc_py: mineEff ? Math.round(mineEff * PY) : null, noc_m2: mineEff ? Math.round(mineEff) : null, area_m2: areaOf(g), area_basis: g.basis === 'ex' ? '전용' : '임대'};
+  const market = V.mktVal ? {office_rent_py_per_month: Math.round(V.mktVal * PY), note: '한국부동산원 권역 임대료(정의가 NOC와 다를 수 있음)'} : null;
+  $('aiBtn').disabled = true; setStatus('aiStatus', 'AI가 목록을 살펴보는 중입니다...');
+  try {
+    const r = await fetch('/api/ask', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({question: q, rows, me, market})});
+    let d = null; try { d = await r.json(); } catch {}
+    if (!r.ok) throw new Error((d && d.detail) || `요청 실패 (${r.status})`);
+    const byId = Object.fromEntries(rows.map(x => [x.id, x]));
+    $('aiOut').innerHTML = `<div class="out">${esc(d.summary)}</div>` + (d.caveats ? `<div class="notice warn">${esc(d.caveats)}</div>` : '') +
+      (d.matches.length ? `<div class="lbl" style="margin-top:12px">조건에 맞는 건물 ${d.matches.length}곳</div>` : '<div class="hint">조건에 맞는 건물이 목록에 없습니다.</div>') +
+      d.matches.map(m => { const x = byId[m.id], c = comps.find(k => k.id === m.id); return `<div class="card" data-id="${m.id}"><div class="t">${esc(x.name)}</div><div class="m">${esc(m.reason)}<br>실효 NOC ${fmt(x.noc_py)}원/평 (${fmt(x.noc_m2)}원/㎡) · ${fmt(x.area_py)}평${x.station_m != null ? ` · 역 직선 ${fmt(x.station_m)}m` : ''}</div>` +
+        (c && c.lat != null ? `<div class="row" style="margin-top:8px"><button class="btn-lime btn-sm" data-ai="go" data-id="${m.id}">이 건물 분석</button></div>` : '') + '</div>'; }).join('') +
+      `<div class="hint">모델: ${esc(d.model)} · 답변은 참고용이며 계약 판단 전 원자료를 확인하세요.</div>`;
+    $('aiOut').querySelectorAll('.card[data-id]').forEach(el => el.onclick = e => { if (!e.target.closest('button')) focusComp(Number(el.dataset.id)); });
+    $('aiOut').querySelectorAll('button[data-ai]').forEach(b => b.onclick = () => {
+      const c = comps.find(k => k.id === Number(b.dataset.id)); if (!c) return;
+      if (b.dataset.ai === 'map') { map.setView([c.lat, c.lon], 18); outlineAt(c.lat, c.lon); }
+      else { choose({name: c.name, address: c.resolved || c.address || '', road_address: '', building: true, latitude: c.lat, longitude: c.lon}, {peek: true}); showTab('access'); }
+    });
+    setStatus('aiStatus', '');
+  } catch (e) { setStatus('aiStatus', 'AI 질문 오류: ' + e.message, true); }
+  finally { $('aiBtn').disabled = false; }
+}
+
+/* ───────── 이벤트 / 초기화 ───────── */
+$('searchBtn').onclick = () => { $('acMain').hidden = true; searchAddress(); };
+attachPicker($('addressQuery'), $('acMain'), it => { $('addressQuery').value = it.name || addrOf(it); $('searchResults').innerHTML = ''; choose(it); }, searchAddress);
+const fillComp = it => { $('cName').value = it.name || addrOf(it); $('cAddr').value = addrOf(it); S.pending = {address: addrOf(it), lat: it.latitude, lon: it.longitude, resolved: addrOf(it)}; setStatus('cStatus', `'${it.name || addrOf(it)}'의 위치를 채웠습니다. 임대 조건을 입력하고 추가하세요.`); $('cRent').focus(); };
+attachPicker($('cName'), $('acName'), fillComp);
+attachPicker($('cAddr'), $('acAddr'), fillComp);
+$('histSave').onclick = saveHist;
+attachPicker($('homeBld'), $('acHome'), it => choose(it), () => { $('addressQuery').value = $('homeBld').value; document.querySelector('.sidebar').scrollTo({top: 0, behavior: 'smooth'}); searchAddress(); });
+$('aiBtn').onclick = askAi;
+document.querySelectorAll('#aiChips .chip').forEach(c => c.onclick = () => { $('aiQ').value = c.dataset.q; $('aiQ').focus(); });
+$('reportBtn').onclick = printReport;
+$('calcBtn').onclick = calc;
+MINE_IDS.forEach(id => $(id).addEventListener('change', calc));
+$('accessBtn').onclick = analyzeAccess;
+$('sunBtn').onclick = analyzeSun;
+$('areaBtn').onclick = analyzeArea;
+$('footBtn').onclick = loadFootfall;
+$('cAdd').onclick = addComp;
+$('simBtn').onclick = findSimilar;
+$('csvTpl').onclick = csvTemplate;
+$('csvBtn').onclick = () => $('csvFile').click();
+$('csvFile').onchange = e => { if (e.target.files[0]) importCsv(e.target.files[0]); e.target.value = ''; };
+$('cScope').onchange = renderComps;
+$('cCsv').onclick = exportCsv;
+$('cClear').onclick = () => { if (confirm('비교 건물을 모두 삭제할까요?')) { comps = []; saveComps(); renderComps(); } };
+
+
+(function engineUi() {
+  const b = $('engineBtn'); if (!window.KAKAO_AVAILABLE) return;
+  const onKakao = !!window.USE_KAKAO;
+  b.hidden = false; b.textContent = onKakao ? '🗺 기본 지도로 보기' : (window.KAKAO_OFF ? '🗺 카카오맵으로 보기' : '🗺 카카오맵 불러오기 실패 — 기본 지도 사용 중');
+  b.onclick = () => { try { localStorage.setItem('ri_engine', onKakao ? 'leaflet' : 'kakao'); } catch {} location.reload(); };
+  if (window.KAKAO_KEY && !onKakao && !window.KAKAO_OFF) setTimeout(() => setStatus('appStatus', '카카오맵을 불러오지 못했습니다. 카카오 개발자 > 앱 > 플랫폼 > Web에 http://127.0.0.1:8000 과 http://localhost:8000 을 등록했는지 확인하세요.', true), 800);
+})();
+const savedMine = store.load('ri_mine', null);
+if (savedMine) MINE_IDS.forEach(id => { if (savedMine[id] != null) $(id).value = savedMine[id]; });
+$('sunDate').value = new Date().toLocaleDateString('sv-SE');
+initMarketUi();
+calc();
+renderComps();
+loadHubs();
+renderHist();
+{ const h = store.load('ri_home', null); if (h && Number.isFinite(Number(h.latitude))) choose(h); }
+
+fetch('/api/health').then(r => r.json()).then(h => {
+  M.configured = !!h.rone_configured;
+  if (!h.ai_configured) setStatus('aiStatus', 'AI 키가 없어 질문할 수 없습니다. app.py 위쪽 ANTHROPIC_KEY_HERE에 Claude API 키를 넣으세요.', true);
+  $('keys').innerHTML = `<i class="${h.kakao_configured ? 'ok' : 'bad'}">카카오 ${h.kakao_configured ? '연결' : '키 없음'}</i><i class="${h.seoul_configured ? 'ok' : 'bad'}">서울시 ${h.seoul_configured ? '연결' : '키 없음'}</i><i class="${h.rone_configured ? 'ok' : 'bad'}">R-ONE ${h.rone_configured ? '연결' : '키 없음'}</i>`;
+  setStatus('appStatus', h.kakao_configured ? '건물명이나 주소를 입력하면 목록이 나옵니다.' : '.env에 KAKAO_REST_API_KEY를 설정하세요.', !h.kakao_configured);
+}).catch(() => {
+  $('keys').innerHTML = '<i class="bad">서버 연결 실패</i>';
+  setStatus('appStatus', '서버 연결 실패. start_server.bat 또는 uvicorn 실행 상태를 확인하세요.', true);
+});
+</script>
+</body>
+</html>
