@@ -2896,7 +2896,7 @@ function tcoCsv() {
 }
 function tcoReportHtml() {
   renderTco();
-  const rows = PRO.tcoRows; if (!rows || rows.length < 2) return '';
+  const rows = PRO.tcoRows; if (!rows || rows.length < 2) return typeof cmReportHtml === 'function' ? cmReportHtml() : '';
   const g = readMine(), f = unitFactor(g), u = unitLabel(g), mine = rows.find(r => r.mine);
   let h = `<h2>결론</h2><div class="foot" style="margin:0;font-size:12px;color:#1f2933;line-height:1.7">${$('tcoVerdict').innerHTML.replace(/<ul>[\s\S]*<\/ul>/, '')}</div>`;
   h += `<h2>총비용 비교 (${g.term}개월 기준, 면적당 월 ${u})</h2><table><tr><th>순위</th><th>건물</th><th>면적당 월</th><th>${PRO.tcoRows[0].H}개월 총비용</th><th>현재 대비</th><th>일회성 비용</th></tr>` +
@@ -2905,6 +2905,7 @@ function tcoReportHtml() {
   const d = deadlineInfo(g);
   if (d) h += `<div class="foot">계약 만료 ${ymd(d.end)} · 해지·갱신 통보 기한 ${ymd(d.notice)}</div>`;
   if (PRO.homeLedger) { const l = PRO.homeLedger; h += `<div class="foot">건축물대장(${esc(l.address || '')}): 연면적 ${l.tot_area_m2 ? nf.format(Math.round(l.tot_area_m2)) + '㎡' : '—'} · 지상 ${l.floors_above ?? '—'}/지하 ${l.floors_below ?? '—'}층 · 승강기 ${l.elevators ?? '—'} · 주차 ${l.parking_total ?? '—'} · 사용승인 ${esc(l.approved || '—')} (출처: 국토교통부 건축HUB)</div>`; }
+  if (typeof cmReportHtml === 'function') h += cmReportHtml();
   return h;
 }
 $('tcoCsvBtn').onclick = tcoCsv;
@@ -3111,6 +3112,27 @@ renderCmRows(); cmCompute();
   renderTco();
   if (S.sel) loadLedgerNow();
 })();
+
+
+/* 보고서용 통근 요약 */
+function cmReportHtml() {
+  cmCompute();
+  if (!CM.groups.length) return '';
+  const subs = cmSubjects(); if (!subs.length) return '';
+  const main = subs.find(s => s.id === 'mine') || subs[0], r = CM.res[main.id]; if (!r) return '';
+  const far = r.rows.slice().sort((a, b) => b.min - a.min)[0], P = x => Math.round(x) + '%';
+  let h = `<h2>직원 통근 분석 (${esc(main.name)} 기준)</h2><div class="kv"><div>직원 수<b>${nf.format(r.tot)}명</b></div><div>평균 이동시간(추정)<b>약 ${Math.round(r.avg)}분</b></div><div>평균 거리<b>${r.avgKm.toFixed(1)}km</b></div><div>가장 먼 곳<b style="font-size:12px">${esc(far.label)} 약 ${Math.round(far.min)}분</b></div></div>`;
+  h += `<table style="margin-top:8px"><tr><th>이동시간</th><th>30분 이내</th><th>30~45분</th><th>45~60분</th><th>60분 초과</th></tr><tr><td>직원 비율</td><td>${P(r.p30)}</td><td>${P(r.p45)}</td><td>${P(r.p60)}</td><td>${P(r.p60p)}</td></tr></table>`;
+  const top = r.rows.slice().sort((a, b) => b.n - a.n), shown = top.slice(0, 12);
+  h += `<table style="margin-top:8px"><tr><th>거주지(읍·면·동)</th><th>인원</th><th>거리</th><th>예상 이동시간</th></tr>` + shown.map(g => `<tr><td>${esc(g.label)}${g.approx ? ' (구 전체 기준)' : ''}</td><td>${nf.format(g.n)}명</td><td>${g.km.toFixed(1)}km</td><td>약 ${Math.round(g.min)}분</td></tr>`).join('') + `</table>`;
+  if (top.length > shown.length) h += `<div class="foot" style="margin-top:4px">그 외 ${top.length - shown.length}개 지역 생략</div>`;
+  if (subs.length > 1) {
+    const list = subs.map(s => ({s, r: CM.res[s.id]})).filter(x => x.r).sort((a, b) => a.r.avg - b.r.avg);
+    h += `<table style="margin-top:8px"><tr><th>건물별 비교</th><th>평균 이동시간</th><th>평균 거리</th><th>30분 이내</th><th>60분 초과</th></tr>` + list.map(x => `<tr><td>${x.s.id === main.id ? '<b>' + esc(x.s.name) + '</b>' : esc(x.s.name)}</td><td>약 ${Math.round(x.r.avg)}분</td><td>${x.r.avgKm.toFixed(1)}km</td><td>${P(x.r.p30)}</td><td>${P(x.r.p60p)}</td></tr>`).join('') + `</table>`;
+  }
+  h += `<div class="foot" style="margin-top:6px">이동시간은 행정동 중심점과 건물 사이 직선거리 × 1.3 ÷ 25km/h + 10분(대중교통·환승 가정)으로 계산한 추정값이며 실제와 다를 수 있습니다. 직원 개인 주소는 보고서에 포함되지 않습니다.</div>`;
+  return h;
+}
 
 </script>
 </body>
