@@ -62,6 +62,11 @@ app = FastAPI(title="Rental Intelligence")
 # 웹에 올릴 때: 환경변수 APP_PASSWORD를 설정하면 접속할 때 비밀번호(아이디는 아무거나)를 묻습니다.
 # 설정하지 않으면 누구나 접속해 카카오·AI 등 사용량을 쓸 수 있으니 공개 서버에서는 꼭 설정하세요.
 APP_PASSWORD = os.getenv("APP_PASSWORD")
+AI_PER_HOUR = int(os.getenv("AI_PER_HOUR", "15"))      # IP 1곳당 시간당 AI 호출 한도
+AI_PER_DAY = int(os.getenv("AI_PER_DAY", "300"))       # 서버 전체 하루 AI 호출 한도
+_rl: dict = {}
+_rl_day: list = []
+_rl_lock = threading.Lock()
 
 
 @app.middleware("http")
@@ -79,6 +84,16 @@ async def basic_auth(request, call_next):
                 ok = False
         if not ok:
             return Response("로그인이 필요합니다.", status_code=401, headers={"WWW-Authenticate": 'Basic realm="Rental Intelligence"'})
+    # 포트폴리오처럼 누구나 접속할 때: 유료 AI 호출(/api/ask, /api/extract)은 IP당 시간당 횟수를 제한해 요금 폭탄을 막습니다.
+    if request.url.path in ("/api/ask", "/api/extract"):
+        ip = (request.headers.get("x-forwarded-for", "") or (request.client.host if request.client else "")).split(",")[0].strip()
+        now = time.time()
+        with _rl_lock:
+            _rl_day[:] = [t for t in _rl_day if now - t < 86400]
+            hits = [t for t in _rl.get(ip, []) if now - t < 3600]
+            if len(hits) >= AI_PER_HOUR or len(_rl_day) >= AI_PER_DAY:
+                return Response('{"detail":"AI 기능 사용 한도를 넘었습니다(데모 서버 보호). 잠시 후 다시 시도하세요."}', status_code=429, media_type="application/json")
+            hits.append(now); _rl[ip] = hits; _rl_day.append(now)
     return await call_next(request)
 http = requests.Session()
 http.headers.update({"User-Agent": "RentalIntelligence/5 (internal lease analysis)"})
