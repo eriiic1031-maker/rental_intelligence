@@ -322,6 +322,67 @@ button:hover{filter:brightness(1.08)}
 .ktip.tgt{background:#e5322d}.ktip.stn{background:#1f6feb}
 .ktip.light{background:#fff;color:#1f2933;border:1px solid #d5ddd8;font-weight:600}
 .engine-btn{position:absolute;z-index:450;right:14px;bottom:24px;background:#fff;color:#1f2933;border:1px solid var(--line);box-shadow:0 2px 10px #0000002b;border-radius:10px;padding:8px 12px}
+/* ───── v8: 제안서 · 총비용 · 점수표 · 만기 · 4단계 ───── */
+.tabs{grid-template-columns:repeat(5,1fr)}
+.tabs button{font-size:11px;padding:7px 1px}
+.steps{display:flex;gap:6px;padding:10px 12px 2px}
+.steps button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:1px solid var(--line);color:#3b4650;border-radius:999px;padding:8px 4px;font-size:11.5px;font-weight:700}
+.steps button i{font-style:normal;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#e5e8eb;color:#5d6963;font-size:11px}
+.steps button.on{border-color:#03c75a;background:#f0fbf4;color:#0b6b34}
+.steps button.on i{background:#03c75a;color:#fff}
+.steps button.done i{background:#03c75a;color:#fff}
+.steps button.done i::before{content:"✓"}
+.steps button.done i{font-size:0}
+.steps button.done i::before{font-size:11px}
+.kpibar{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 18px 0;font-size:11px;color:var(--muted)}
+.dl{margin:10px 12px 0;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font-size:12px;line-height:1.6}
+.dl.warn{border-color:#e0a02a;background:#fff8e6}.dl.bad{border-color:#e5322d;background:#fdecec}
+.dl b{font-size:13px}
+.dl .row{margin-top:6px;flex-wrap:wrap}
+.q{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:5px;border-radius:50%;background:#e5e8eb;color:#5d6963;font-size:10px;font-weight:800;cursor:help;vertical-align:1px}
+.q:focus{outline:2px solid #03c75a}
+#tipBox{position:fixed;z-index:3000;max-width:250px;background:#1f2933;color:#fff;font-size:12px;line-height:1.5;padding:8px 10px;border-radius:9px;box-shadow:0 8px 24px #0004;pointer-events:none}
+#tipBox[hidden]{display:none}
+.prop{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;background:#fff}
+.prop.added{border-color:#03c75a;background:#f0fbf4}
+.prop .ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.prop .ph b{font-size:13px}
+.conf{font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 8px;color:#fff}
+.conf.high{background:#2f9e6a}.conf.medium{background:#b8921f}.conf.low{background:#c2412d}
+.prop .ev{font-size:11px;color:var(--muted);border-left:3px solid #d5ddd8;padding-left:8px;margin:6px 0;line-height:1.5}
+.prop .pw{font-size:11.5px;color:#9a5b00;margin-top:4px}
+.prop label{font-size:11px}
+.prop input{padding:7px 9px;font-size:12px}
+.tcr{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:#fff}
+.tcr.mine{border-color:#e07b2a;background:#fff8f0}
+.tcr.best{border-color:#03c75a}
+.tcr .t1{display:flex;align-items:baseline;gap:8px}
+.tcr .rk{font-weight:800;color:#0b6b34;min-width:18px}
+.tcr .nm{flex:1;font-weight:700;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcr .pa{font-weight:800;font-size:14px}
+.tcr .t2{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+.tcr .dlt{font-weight:800}.dlt.up{color:#c2412d}.dlt.dn{color:#1f7a50}
+.tcr .stk{display:flex;height:9px;border-radius:5px;overflow:hidden;margin-top:7px;background:#eef1f3}
+.tcr .stk span{display:block;height:100%}
+.tleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin:8px 0 2px}
+.tleg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.vbox{border:2px solid #03c75a;border-radius:14px;padding:12px 14px;background:#f0fbf4;line-height:1.65;font-size:13px;margin-top:12px}
+.vbox .vh{font-size:15px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px}
+.vbox ul{margin:6px 0 0;padding-left:18px;font-size:12px}
+.sc{display:grid;grid-template-columns:22px 1fr 46px;gap:6px;align-items:center;margin-top:7px;font-size:12px}
+.sc .bar{height:10px;background:#eef1f3;border-radius:5px;overflow:hidden}
+.sc .bar i{display:block;height:100%;background:#03c75a}
+.sc .mini{display:flex;gap:4px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);grid-column:2/4}
+.sc .mini span{background:#f1f3f5;border-radius:6px;padding:1px 6px}
+.ledger{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;background:#fff;font-size:12px}
+.ledger .kv2{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:6px}
+.ledger .kv2 div{line-height:1.45}.ledger .kv2 small{display:block;color:var(--muted);font-size:10.5px}
+.ledger .kv2 b{font-size:13px}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid #cfe9da;border-top-color:#03c75a;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#nocWarn .notice{margin-top:8px}
+@media(max-width:520px){.steps button{font-size:10.5px;padding:7px 2px}.steps button i{display:none}.tabs button{font-size:10.5px}}
+@media print{.steps,.dl,.kpibar{display:none!important}}
 </style>
 </head>
 <body>
@@ -343,6 +404,7 @@ button:hover{filter:brightness(1.08)}
     <div id="appStatus" class="status"></div>
   </div>
 
+  <div class="kpibar"><span>NOC 표시 단위</span><button class="btn-ghost btn-sm" id="unitQuick" type="button"></button></div>
   <div class="kpis">
     <div class="kpi hl span2k"><div class="name">🚇 가장 가까운 역</div><div class="value" id="kStation">건물을 검색하세요</div><div class="sub" id="kWalk">검색하면 자동으로 찾아 표시합니다</div></div>
     <div class="kpi"><div class="name">명목 NOC</div><div class="value" id="kNominal">—</div><div class="sub" id="kNominalSub"></div></div>
@@ -351,15 +413,24 @@ button:hover{filter:brightness(1.08)}
   </div>
 
   <div class="verdict" id="verdict" hidden></div>
+  <div class="dl" id="deadlineBar" hidden></div>
+  <nav class="steps" aria-label="진행 단계">
+    <button type="button" data-step="noc"><i>1</i>내 임대</button>
+    <button type="button" data-step="comp"><i>2</i>후보 건물</button>
+    <button type="button" data-step="tco"><i>3</i>총비용 비교</button>
+    <button type="button" data-step="report"><i>4</i>보고서</button>
+  </nav>
 
   <div class="tabs" role="tablist" aria-label="분석 항목">
     <button role="tab" aria-selected="true" data-tab="noc"><span class="ic">💰</span>NOC</button>
+    <button role="tab" aria-selected="false" data-tab="prop"><span class="ic">🧾</span>제안서</button>
+    <button role="tab" aria-selected="false" data-tab="comp"><span class="ic">⚖️</span>비교</button>
+    <button role="tab" aria-selected="false" data-tab="tco"><span class="ic">🏆</span>총비용</button>
     <button role="tab" aria-selected="false" data-tab="market"><span class="ic">📈</span>시세</button>
     <button role="tab" aria-selected="false" data-tab="access"><span class="ic">🚇</span>역 접근</button>
     <button role="tab" aria-selected="false" data-tab="sun"><span class="ic">☀️</span>일조</button>
     <button role="tab" aria-selected="false" data-tab="area"><span class="ic">🏪</span>상권·유동</button>
     <button role="tab" aria-selected="false" data-tab="similar"><span class="ic">🏢</span>유사 건물</button>
-    <button role="tab" aria-selected="false" data-tab="comp"><span class="ic">⚖️</span>비교</button>
     <button role="tab" aria-selected="false" data-tab="ai"><span class="ic">✨</span>AI 질문</button>
   </div>
 
@@ -368,6 +439,7 @@ button:hover{filter:brightness(1.08)}
     <h2>현재 임차 건물 NOC</h2>
     <p class="desc">임차 중인 건물을 먼저 고른 뒤 계약 조건을 입력하세요. 선택한 건물이 지도의 빨간 건물이 되고, 역·상권·일조·시세 분석이 이 건물 기준으로 연결됩니다. 입력값은 저장되어 다음에 열어도 그대로 나옵니다.</p>
     <div class="ac-wrap" style="margin-bottom:12px"><label class="lbl" for="homeBld">임차 건물 (건물명 또는 주소)</label><input id="homeBld" placeholder="건물명을 입력하고 목록에서 선택" autocomplete="off"><div class="ac" id="acHome" hidden></div><div id="homeInfo" class="hint">아직 선택한 건물이 없습니다.</div></div>
+    <div id="ledgerBox"></div>
     <div class="fields">
       <div><label for="rent">월 임대료 (원)</label><input id="rent" type="number" min="0" value="15000000"></div>
       <div><label for="fee">월 관리비 (원)</label><input id="fee" type="number" min="0" value="3500000"></div>
@@ -381,7 +453,22 @@ button:hover{filter:brightness(1.08)}
       <div><label for="basis">NOC 나누는 면적</label><select id="basis"><option value="lease">임대면적</option><option value="ex">전용면적</option></select></div>
       <div class="span2"><label for="unit">표시 단위</label><select id="unit"><option value="m2">원/㎡·월</option><option value="py">원/평·월 (1평 = 3.3058㎡)</option></select></div>
     </div>
+    <details class="tv" id="lxDetails"><summary>계약 만기 · 숨은 비용 (선택)</summary>
+      <div class="fields" style="margin-top:8px">
+        <div><label for="lStart">계약 시작일</label><input id="lStart" type="date"></div>
+        <div><label for="lNotice">해지·갱신 통보 (만료 몇 개월 전)</label><input id="lNotice" type="number" min="0" value="6"></div>
+        <div><label for="xParking">월 주차비 합계 (원)</label><input id="xParking" type="number" min="0" value="0"></div>
+        <div><label for="xFit">인테리어 비용 (원, 일시)</label><input id="xFit" type="number" min="0" value="0"></div>
+        <div><label for="xTi">인테리어 지원금 TI (원)</label><input id="xTi" type="number" min="0" value="0"></div>
+        <div><label for="xMove">이사·부대비용 (원)</label><input id="xMove" type="number" min="0" value="0"></div>
+        <div><label for="xRestore">원상복구비 (원, 만료 시)</label><input id="xRestore" type="number" min="0" value="0"></div>
+        <div><label for="xVat">부가세</label><select id="xVat"><option value="off">반영 안 함</option><option value="on">별도 10% 가산</option></select></div>
+        <div class="span2"><label for="xDisc">현재가치 할인율 (연 %)</label><input id="xDisc" type="number" min="0" step="0.1" value="5"></div>
+      </div>
+      <div class="hint">현재 건물에 계속 머무는 경우라면 인테리어·이사 비용은 0으로 두세요. 시작일을 넣으면 계약 만료일과 해지·갱신 통보 기한을 위에 알려줍니다. 이 값들은 NOC 숫자에는 영향이 없고 '총비용' 탭에서만 쓰입니다.</div>
+    </details>
     <button class="wide btn-lime" id="calcBtn">NOC 계산</button>
+    <div id="nocWarn"></div>
     <div id="calcOut" class="out" hidden></div>
     <div id="nocViz"></div>
     <div class="lbl" style="margin-top:16px">분기별 NOC 이력 <span style="font-weight:400">(시세 탭 그래프에 점으로 표시)</span></div>
@@ -513,6 +600,61 @@ button:hover{filter:brightness(1.08)}
     <div id="simOut"></div>
   </section>
 
+  <!-- 제안서 -->
+  <section class="panel" data-panel="prop" hidden>
+    <h2>제안서 자동 입력</h2>
+    <p class="desc">중개사가 보낸 제안서(PDF·사진)나 메일 본문을 넣으면 AI가 건물별 임대 조건을 읽어 입력칸을 채웁니다. 평당·㎡당·총액이 섞여 있어도 환산해 줍니다. <b>읽은 값은 반드시 확인한 뒤 추가하세요.</b></p>
+    <textarea id="propText" rows="6" placeholder="메일 본문이나 제안서 내용을 여기에 붙여넣으세요. 예: 건물명 ○○타워, 12층 500평(전용 280평), 임대료 평당 9만원, 관리비 평당 2만원, 보증금 임대료 10개월, 렌트프리 3개월 ..."></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn-ghost" id="propFileBtn" type="button">📎 PDF·이미지 올리기</button><span id="propFileName" class="hint" style="margin:0"></span><input type="file" id="propFile" accept="application/pdf,image/png,image/jpeg,image/webp" hidden></div>
+    <button class="wide btn-lime" id="propRun">AI로 조건 읽기</button>
+    <div id="propStatus" class="status"></div>
+    <div id="propOut"></div>
+    <div class="notice">붙여넣거나 올린 내용은 분석을 위해 Anthropic AI 서버로 전송됩니다. 외부로 나가면 안 되는 기밀 문서는 올리지 마세요. 이 앱은 제안서 원문을 저장하지 않으며, 추가한 임대 조건 숫자만 저장합니다.</div>
+  </section>
+
+  <!-- 총비용 -->
+  <section class="panel" data-panel="tco" hidden>
+    <h2>총비용 비교 · 결론</h2>
+    <p class="desc">계약기간 동안 실제로 나가는 돈(임대료·관리비·보증금 이자·주차·부가세·인테리어·이사·원상복구)을 모두 더해 같은 면적 기준으로 순위를 매깁니다. 현재 건물에 머무는 경우와 이전하는 경우를 한눈에 비교합니다.</p>
+    <div class="fields">
+      <div><label for="tcoHor">비교 기간</label><select id="tcoHor"><option value="mine">모두 내 계약기간으로 통일</option><option value="own">각 건물의 계약기간</option></select></div>
+      <div><label>표시 방식</label><label class="chip" style="margin:0"><input type="checkbox" id="tcoNpv"> 현재가치로 보기</label></div>
+    </div>
+    <details class="tv"><summary>협상 가정 (시나리오)</summary>
+      <label class="chip" style="margin:8px 0"><input type="checkbox" id="scOn"> 후보 건물에 협상 결과를 가정해 적용</label>
+      <div class="fields">
+        <div><label for="scDisc">임대료 인하 (%)</label><input id="scDisc" type="number" min="0" max="50" step="0.5" value="5"></div>
+        <div><label for="scFree">렌트프리 추가 (개월)</label><input id="scFree" type="number" min="0" step="1" value="2"></div>
+      </div>
+      <div class="hint">후보 건물에만 적용됩니다. "협상하면 순위가 바뀔까?"를 확인하는 용도입니다.</div>
+    </details>
+    <div id="tcoVerdict"></div>
+    <div id="tcoTable"></div>
+
+    <div class="sep"></div>
+    <h2>종합 점수표</h2>
+    <p class="desc">비용 외에 입지·상권·규모·통근까지 중요도에 따라 합산합니다. 정보가 없는 항목은 빼고 계산하며, 반영된 비율을 표시합니다.</p>
+    <div class="wrow"><span>비용</span><input type="range" id="w_cost" min="0" max="5" step="1" value="5"><b id="wv_cost">5</b></div>
+    <div class="wrow"><span>역 도보</span><input type="range" id="w_walk" min="0" max="5" step="1" value="2"><b id="wv_walk">2</b></div>
+    <div class="wrow"><span>상권</span><input type="range" id="w_fb" min="0" max="5" step="1" value="1"><b id="wv_fb">1</b></div>
+    <div class="wrow"><span>기준층 면적</span><input type="range" id="w_size" min="0" max="5" step="1" value="1"><b id="wv_size">1</b></div>
+    <div class="wrow"><span>통근</span><input type="range" id="w_commute" min="0" max="5" step="1" value="2"><b id="wv_commute">2</b></div>
+    <button class="wide btn-lime" id="batchBtn" type="button">입지 일괄 분석 (역 도보 · 상권)</button>
+    <div id="batchStatus" class="status"></div>
+    <div id="scoreOut"></div>
+
+    <details class="tv"><summary>통근 분석 (선택)</summary>
+      <div class="hint">직원 거주지를 구·시 단위 인원으로만 입력하세요. 개인 주소는 입력하지 않습니다.</div>
+      <textarea id="commuteIn" rows="3" placeholder="예: 송파구 12, 강남구 8, 성남시 5"></textarea>
+      <div id="commuteOut"></div>
+    </details>
+
+    <div class="sep"></div>
+    <div class="lbl" id="tcoExport">내보내기</div>
+    <div class="row" style="flex-wrap:wrap"><button class="btn-ghost" id="tcoCsvBtn" type="button">엑셀용 CSV</button><button class="btn-lime" id="tcoPrint" type="button">보고서 인쇄 / PDF</button><button class="btn-ghost" id="icsBtn" type="button">📅 만기 알림(.ics)</button></div>
+    <div class="hint">보고서에는 결론, 총비용 표, 점수표, 계약 만기, 건축물대장 정보가 들어갑니다. 인쇄 창에서 'PDF로 저장'을 고르세요.</div>
+  </section>
+
   <!-- 비교 -->
   <section class="panel" data-panel="comp" hidden>
     <h2>주변 건물 NOC 비교</h2>
@@ -525,6 +667,17 @@ button:hover{filter:brightness(1.08)}
       <div><label for="cDep">보증금 (원)</label><input id="cDep" type="number" min="0"></div>
       <div><label for="cArea">면적 (㎡, 위에서 고른 기준)</label><input id="cArea" type="number" min="0.01" step="0.01"></div>
       <div class="span2"><label for="cFree">렌트프리 (개월)</label><input id="cFree" type="number" min="0" value="0"></div>
+      <details class="tv span2"><summary>상세 조건 · 숨은 비용 (선택)</summary>
+        <div class="fields" style="margin-top:8px">
+          <div><label for="cTerm">계약기간 (개월)</label><input id="cTerm" type="number" min="1" placeholder="비우면 내 계약기간"></div>
+          <div><label for="cEsc">연 인상률 (%)</label><input id="cEsc" type="number" min="0" step="0.1" placeholder="비우면 내 값"></div>
+          <div><label for="cParking">월 주차비 합계 (원)</label><input id="cParking" type="number" min="0"></div>
+          <div><label for="cFit">인테리어 비용 (원)</label><input id="cFit" type="number" min="0"></div>
+          <div><label for="cTi">인테리어 지원금 TI (원)</label><input id="cTi" type="number" min="0"></div>
+          <div><label for="cMove">이사·부대비용 (원)</label><input id="cMove" type="number" min="0"></div>
+          <div class="span2"><label for="cRestore">원상복구비 (원)</label><input id="cRestore" type="number" min="0"></div>
+        </div>
+      </details>
     </div>
     <button class="wide btn-lime" id="cAdd">비교 건물 추가</button>
     <div id="cStatus" class="status"></div>
@@ -884,6 +1037,7 @@ function choose(raw, opt = {}) {
   setStatus('appStatus', `'${title}'을(를) 지도에 표시했습니다.`);
   updatePeekBar(); outlineAt(lat, lon, L_target);
   analyzeAccess({auto: true});
+  if (window.afterChoose) afterChoose(opt);
 }
 
 /* ───────── 건물명 검색: 입력 중 자동완성 + Enter/검색 버튼으로 전체 목록 ───────── */
@@ -964,14 +1118,16 @@ async function searchAddress() {
 }
 
 /* ───────── NOC ───────── */
-const MINE_IDS = ['rent','fee','deposit','rate','areaLease','areaEx','term','free','esc','basis','unit'];
+const MINE_IDS = ['rent','fee','deposit','rate','areaLease','areaEx','term','free','esc','basis','unit','lStart','lNotice','xParking','xFit','xTi','xMove','xRestore','xVat','xDisc'];
 function readMine() {
   const n = id => Number($(id).value) || 0;
   return {
     rent: n('rent'), fee: n('fee'), dep: n('deposit'), rate: n('rate') / 100,
     areaLease: n('areaLease'), areaEx: n('areaEx'),
     term: Math.max(1, Math.round(n('term')) || 36), free: n('free'), esc: n('esc') / 100,
-    basis: $('basis').value, unit: $('unit').value
+    basis: $('basis').value, unit: $('unit').value,
+    parking: n('xParking'), fitout: n('xFit'), ti: n('xTi'), move: n('xMove'), restore: n('xRestore'), vat: $('xVat').value === 'on', disc: n('xDisc') / 100,
+    start: $('lStart').value, notice: n('lNotice')
   };
 }
 const areaOf = m => m.basis === 'ex' ? m.areaEx : m.areaLease;
@@ -1009,6 +1165,7 @@ function calc() {
   renderComps();
   renderMarket();
   renderHist();
+  if (window.afterCalc) afterCalc(g, r);
   return r;
 }
 
@@ -1434,12 +1591,20 @@ async function loadFootfall() {
 /* ───────── 비교 ───────── */
 let comps = store.load('ri_comps', []);
 const saveComps = () => store.save('ri_comps', comps);
+const FEAT = {ledger: false};     // 건축물대장 키 설정 여부 (서버 /api/health로 갱신)
+function extraLine(c) {
+  const p = [];
+  if (c.term) p.push(c.term + '개월'); if (c.esc != null) p.push('인상 ' + (c.esc * 100).toFixed(1) + '%'); if (c.parking) p.push('주차 ' + fmt(c.parking));
+  if (c.fitout) p.push('인테리어 ' + fmt(c.fitout)); if (c.ti) p.push('TI ' + fmt(c.ti)); if (c.move) p.push('이사 ' + fmt(c.move)); if (c.restore) p.push('원상복구 ' + fmt(c.restore));
+  return p.length ? '<br>상세: ' + p.join(' · ') : '';
+}
+const ledgerLine = l => l ? `<br>🏛 연면적 ${l.tot ? nf.format(Math.round(l.tot / PY)) + '평' : '—'} · 지상 ${l.up ?? '—'}/지하 ${l.down ?? '—'}층 · 기준층 ${l.typ ? nf.format(Math.round(l.typ / PY)) + '평' : '—'} · 승강기 ${l.elev ?? '—'} · 주차 ${l.park ?? '—'} · 승인 ${l.appr ? String(l.appr).slice(0, 4) : '—'}` : '';
 
-function compNoc(c, g) { return calcNoc({rent: c.rent, fee: c.fee, dep: c.dep, area: c.area, free: c.free}, g); }
+function compNoc(c, g) { return calcNoc({rent: c.rent, fee: c.fee, dep: c.dep, area: c.area, free: c.free}, (c.term || c.esc != null) ? {...g, term: c.term || g.term, esc: c.esc != null ? c.esc : g.esc} : g); }
 
 async function addComp() {
   const num = id => Number($(id).value) || 0;
-  const c = {id: Date.now(), name: $('cName').value.trim(), address: $('cAddr').value.trim(), rent: num('cRent'), fee: num('cFee'), dep: num('cDep'), area: num('cArea'), free: num('cFree')};
+  const c = {id: Date.now(), name: $('cName').value.trim(), address: $('cAddr').value.trim(), rent: num('cRent'), fee: num('cFee'), dep: num('cDep'), area: num('cArea'), free: num('cFree'), ...cExtras()};
   if (c.area <= 0) { setStatus('cStatus', '면적을 입력하세요.', true); return; }
   if (c.rent <= 0 && c.fee <= 0) { setStatus('cStatus', '임대료 또는 관리비를 입력하세요.', true); return; }
   const btn = $('cAdd'); btn.disabled = true;
@@ -1454,7 +1619,7 @@ async function addComp() {
     }
     if (!c.name) c.name = c.resolved || c.address || `비교 ${comps.length + 1}`;
     comps.push(c); saveComps(); renderComps();
-    ['cName', 'cAddr', 'cRent', 'cFee', 'cDep', 'cArea'].forEach(id => $(id).value = ''); $('cFree').value = 0;
+    ['cName', 'cAddr', 'cRent', 'cFee', 'cDep', 'cArea'].forEach(id => $(id).value = ''); $('cFree').value = 0; clearExtras();
     if (!$('cStatus').classList.contains('err')) setStatus('cStatus', `'${c.name}'을(를) 추가했습니다.`);
   } catch (e) { setStatus('cStatus', '추가 오류: ' + e.message, true); }
   finally { btn.disabled = false; }
@@ -1473,7 +1638,7 @@ function renderComps() {
   $('cTools').hidden = !comps.length;
   const vis = visibleComps();
   V.comps = null; V.compAvgEff = null;
-  const empty = html => { $('cSummary').innerHTML = ''; $('cBars').innerHTML = ''; $('cViz').innerHTML = ''; $('cList').innerHTML = html; renderVerdict(); renderNeg(); };
+  const empty = html => { $('cSummary').innerHTML = ''; $('cBars').innerHTML = ''; $('cViz').innerHTML = ''; $('cList').innerHTML = html; renderVerdict(); renderNeg(); if (window.afterComps) afterComps(); };
   if (!comps.length) { empty('<div class="hint">비교 건물이 없습니다. 위에서 건물명을 검색해 추가하거나 CSV로 가져오세요. <button class="btn-ghost btn-sm" id="goSim">유사 건물 탭에서 후보 찾기</button></div>'); const b = $('goSim'); if (b) b.onclick = () => showTab('similar'); return; }
   if (!vis.length) { empty(`<div class="hint">선택한 범위 안에 좌표가 있는 비교 건물이 없습니다. (전체 ${comps.length}개)</div>`); return; }
   const rows = vis.map(c => ({c, r: compNoc(c, g)}));
@@ -1511,11 +1676,11 @@ function renderComps() {
   $('cList').innerHTML = rows.map(({c, r}) => {
     const a = c.analysis;
     const info = a ? `<br>가까운 역 ${esc(a.station)} · 도보 ${a.walk}분${a.estimated ? ' (추정)' : ''} · 반경 500m 음식점·카페 ${fmt(a.fb)}개` : '';
-    return `<div class="card" data-id="${c.id}"><div class="t">${esc(c.name)}${c.geoBy === 'name' ? '<span class="tag">이름으로 위치 검색</span>' : ''}</div><div class="m">명목 ${fmt(r.nominal * f)} · 실효 ${fmt(r.effective * f)} ${u}<br>임대료 ${fmt(c.rent)} · 관리비 ${fmt(c.fee)} · 보증금 ${fmt(c.dep)} · ${c.area}㎡${c.free ? ` · 렌트프리 ${c.free}개월` : ''}${info}</div>` +
-      `<div class="row" style="margin-top:8px">${c.lat != null ? `<button class="btn-ghost btn-sm" data-act="an" data-id="${c.id}">입지 분석</button>` : ''}<button class="btn-ghost btn-sm" data-act="del" data-id="${c.id}">삭제</button></div></div>`;
+    return `<div class="card" data-id="${c.id}"><div class="t">${esc(c.name)}${c.geoBy === 'name' ? '<span class="tag">이름으로 위치 검색</span>' : ''}</div><div class="m">명목 ${fmt(r.nominal * f)} · 실효 ${fmt(r.effective * f)} ${u}<br>임대료 ${fmt(c.rent)} · 관리비 ${fmt(c.fee)} · 보증금 ${fmt(c.dep)} · ${c.area}㎡${c.free ? ` · 렌트프리 ${c.free}개월` : ''}${extraLine(c)}${ledgerLine(c.ledger)}${info}</div>` +
+      `<div class="row" style="margin-top:8px">${c.lat != null ? `<button class="btn-ghost btn-sm" data-act="an" data-id="${c.id}">입지 분석</button>` : ''}${c.lat != null && FEAT.ledger ? `<button class="btn-ghost btn-sm" data-act="ledger" data-id="${c.id}">건축물대장</button>` : ''}<button class="btn-ghost btn-sm" data-act="del" data-id="${c.id}">삭제</button></div></div>`;
   }).join('');
   $('cList').querySelectorAll('.card').forEach(el => el.onclick = e => { if (!e.target.closest('button')) focusComp(Number(el.dataset.id)); });
-  $('cList').querySelectorAll('button[data-act]').forEach(b => b.onclick = () => b.dataset.act === 'del' ? delComp(Number(b.dataset.id)) : analyzeComp(Number(b.dataset.id), b));
+  $('cList').querySelectorAll('button[data-act]').forEach(b => b.onclick = () => b.dataset.act === 'del' ? delComp(Number(b.dataset.id)) : b.dataset.act === 'ledger' ? compLedger(Number(b.dataset.id), b) : analyzeComp(Number(b.dataset.id), b));
 
   // 지도: 비교 건물 위에 NOC 라벨 (▲ = 내 건물보다 비쌈, ▼ = 더 저렴)
   vis.filter(c => c.lat != null).forEach(c => {
@@ -1527,6 +1692,7 @@ function renderComps() {
     }
   });
   renderVerdict(); renderNeg();
+  if (window.afterComps) afterComps();
 }
 function markRow(id) {
   document.querySelectorAll('#cList .card[data-id], #cBars .cmprow[data-id]').forEach(el => el.classList.toggle('focus', Number(el.dataset.id) === id));
@@ -2168,6 +2334,7 @@ function printReport() {
     h += `<h2>유사 건물 상위 5</h2><table><tr><th>건물</th><th>유사도</th><th>지역</th><th>역 직선거리</th><th>실효 NOC</th></tr>` +
       S.sim.shown.slice(0, 5).map(x => `<tr><td>${esc(x.c.name)}</td><td>${x.s}</td><td>${esc(x.c.hub)}</td><td>${fmt(x.c.station_m)}m</td><td>${x.c.comp && area > 0 ? fmt(compNoc(x.c.comp, g).effective * f) : '—'}</td></tr>`).join('') + `</table>`;
   }
+  h += tcoReportHtml();
   h += `<div class="foot">NOC = (월 임대료 + 월 관리비 + 보증금 × 환산율 ÷ 12) ÷ 면적. 실효 NOC는 렌트프리와 연 임대료 인상을 계약기간 평균으로 반영합니다. 일조는 OpenStreetMap 건물 외곽선·높이 기반 추정, 상권은 카카오 장소 데이터, 시세는 한국부동산원 R-ONE 표본 통계입니다. 참고용이며 계약 판단 전 원자료를 확인하세요.</div>`;
   $('report').innerHTML = h;
   document.body.classList.add('printing');
@@ -2274,13 +2441,464 @@ renderHist();
 
 fetch('/api/health').then(r => r.json()).then(h => {
   M.configured = !!h.rone_configured;
+  if (typeof onHealth === 'function') onHealth(h);
   if (!h.ai_configured) setStatus('aiStatus', 'AI 키가 없어 질문할 수 없습니다. app.py 위쪽 ANTHROPIC_KEY_HERE에 Claude API 키를 넣으세요.', true);
-  $('keys').innerHTML = `<i class="${h.kakao_configured ? 'ok' : 'bad'}">카카오 ${h.kakao_configured ? '연결' : '키 없음'}</i><i class="${h.seoul_configured ? 'ok' : 'bad'}">서울시 ${h.seoul_configured ? '연결' : '키 없음'}</i><i class="${h.rone_configured ? 'ok' : 'bad'}">R-ONE ${h.rone_configured ? '연결' : '키 없음'}</i>`;
+  $('keys').innerHTML = `<i class="${h.kakao_configured ? 'ok' : 'bad'}">카카오 ${h.kakao_configured ? '연결' : '키 없음'}</i><i class="${h.seoul_configured ? 'ok' : 'bad'}">서울시 ${h.seoul_configured ? '연결' : '키 없음'}</i><i class="${h.rone_configured ? 'ok' : 'bad'}">R-ONE ${h.rone_configured ? '연결' : '키 없음'}</i><i class="${h.ledger_configured ? 'ok' : 'bad'}">대장 ${h.ledger_configured ? '연결' : '키 없음'}</i>`;
   setStatus('appStatus', h.kakao_configured ? '건물명이나 주소를 입력하면 목록이 나옵니다.' : '.env에 KAKAO_REST_API_KEY를 설정하세요.', !h.kakao_configured);
 }).catch(() => {
   $('keys').innerHTML = '<i class="bad">서버 연결 실패</i>';
   setStatus('appStatus', '서버 연결 실패. start_server.bat 또는 uvicorn 실행 상태를 확인하세요.', true);
 });
+</script>
+<script>
+/* ═════════ v8: 제안서 자동 입력 · 총비용(TCO) · 점수표 · 만기 알림 · 통근 · 건축물대장 · 4단계 ═════════ */
+const PRO = {
+  health: {}, tab: 'noc', props: [], tcoRows: null, homeAn: null, homeLedger: null, ledger: null,
+  weights: Object.assign({cost: 5, walk: 2, fb: 1, size: 1, commute: 2}, store.load('ri_weights', {})),
+  commuteTxt: store.load('ri_commute', '')
+};
+const wonShort = n => { if (!Number.isFinite(n)) return '—'; const a = Math.abs(n), s = n < 0 ? '-' : ''; return a >= 1e8 ? s + (a / 1e8).toFixed(2) + '억' : a >= 1e4 ? s + nf.format(Math.round(a / 1e4)) + '만' : s + nf.format(Math.round(a)); };
+const numOrU = id => { const v = $(id).value.trim(); return v === '' ? undefined : Number(v); };
+const todayStr = () => new Date().toLocaleDateString('sv-SE');
+
+function onHealth(h) { PRO.health = h || {}; FEAT.ledger = !!PRO.health.ledger_configured; if (PRO.health.status && !PRO.health.ai_configured) setStatus('propStatus', 'AI 키(ANTHROPIC_API_KEY)가 서버에 없어 제안서 자동 읽기를 쓸 수 없습니다.', true); if (PRO.health.ledger_configured && S.sel && !PRO.ledger) loadLedgerNow(); else renderLedger(PRO.ledger); }
+
+/* ───────── 말풍선 설명 (?) ───────── */
+(function tips() {
+  const box = document.createElement('div'); box.id = 'tipBox'; box.hidden = true; document.body.appendChild(box);
+  const show = el => { box.textContent = el.dataset.tip; box.hidden = false; const r = el.getBoundingClientRect(); const w = box.offsetWidth, h = box.offsetHeight; box.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px'; box.style.top = (r.bottom + h + 12 > innerHeight ? r.top - h - 8 : r.bottom + 8) + 'px'; };
+  document.addEventListener('mouseover', e => { const q = e.target.closest && e.target.closest('.q'); if (q) show(q); });
+  document.addEventListener('mouseout', e => { if (e.target.closest && e.target.closest('.q')) box.hidden = true; });
+  document.addEventListener('focusin', e => { if (e.target.classList && e.target.classList.contains('q')) show(e.target); });
+  document.addEventListener('focusout', () => { box.hidden = true; });
+  document.addEventListener('click', e => { const q = e.target.closest && e.target.closest('.q'); if (q) { e.preventDefault(); e.stopPropagation(); show(q); } else box.hidden = true; });
+  const add = (el, text) => { if (!el || el.querySelector('.q')) return; const q = document.createElement('span'); q.className = 'q'; q.tabIndex = 0; q.setAttribute('role', 'note'); q.setAttribute('aria-label', text); q.dataset.tip = text; q.textContent = '?'; el.appendChild(q); };
+  const L = id => document.querySelector(`label[for="${id}"]`);
+  add(L('rate'), '보증금을 월 비용으로 바꾸는 비율입니다. 회사가 그 돈을 다른 곳에 썼을 때 얻을 수익(대출금리 등)을 넣으세요. 예: 연 6~12%');
+  add(L('areaLease'), '계약서에 적힌 임대(공급)면적입니다. 복도·로비 등 공용면적이 포함됩니다.');
+  add(L('areaEx'), '실제로 사무실로 쓰는 전용면적입니다. 전용면적 ÷ 임대면적이 전용률입니다.');
+  add(L('free'), '임대료를 내지 않는 개월 수입니다. 관리비는 보통 계속 냅니다.');
+  add(L('esc'), '매년 임대료가 오르는 비율입니다. 계약서의 증액 조항을 확인하세요.');
+  add(L('basis'), 'NOC를 나눌 면적 기준입니다. 같은 기준으로 비교해야 공정합니다. 임대면적 기준이 일반적입니다.');
+  add(L('xVat'), '제안서 금액이 부가세 별도라면 10%를 더해 계산합니다.');
+  add(L('xDisc'), '미래에 나갈 돈을 현재 가치로 바꾸는 비율입니다. 보통 회사의 자금조달 비용(연 3~8%)을 넣습니다.');
+  add(L('xTi'), 'TI(Tenant Improvement). 건물주가 인테리어 비용 일부를 지원해 주는 금액입니다. 총비용에서 빼서 계산합니다.');
+  add(L('xRestore'), '계약이 끝날 때 사무실을 원래대로 되돌리는 비용입니다.');
+  add(L('lNotice'), '계약 만료 몇 개월 전까지 해지나 갱신 의사를 알려야 하는지입니다. 계약서의 해지·갱신 조항을 확인하세요.');
+  document.querySelectorAll('.kpi .name').forEach(n => {
+    if (n.textContent.trim() === '명목 NOC') add(n, '(월 임대료 + 관리비 + 보증금 환산액) ÷ 면적. 렌트프리와 인상은 반영하지 않은 값입니다.');
+    if (n.textContent.trim() === '실효 NOC') add(n, '렌트프리와 연 임대료 인상을 계약기간 평균으로 반영한 NOC입니다. 비교는 이 값으로 하세요.');
+  });
+})();
+
+/* ───────── 표시 단위 빠른 전환 ───────── */
+function syncUnitBtn() { $('unitQuick').textContent = $('unit').value === 'py' ? '평 기준 → ㎡로' : '㎡ 기준 → 평으로'; }
+$('unitQuick').onclick = () => { $('unit').value = $('unit').value === 'py' ? 'm2' : 'py'; $('unit').dispatchEvent(new Event('change')); syncUnitBtn(); };
+$('unit').addEventListener('change', syncUnitBtn);
+syncUnitBtn();
+
+/* ───────── 4단계 안내 ───────── */
+const STEP_OF = {noc: 'noc', prop: 'comp', comp: 'comp', similar: 'comp', tco: 'tco'};
+function renderSteps() {
+  const g = readMine(), done = {noc: g.rent > 0 && areaOf(g) > 0, comp: comps.length > 0, tco: !!(PRO.tcoRows && PRO.tcoRows.length > 1), report: false};
+  const cur = STEP_OF[PRO.tab] || null;
+  document.querySelectorAll('.steps button').forEach(b => { b.classList.toggle('on', b.dataset.step === cur); b.classList.toggle('done', !!done[b.dataset.step] && b.dataset.step !== cur); });
+}
+document.querySelectorAll('.steps button').forEach(b => b.onclick = () => {
+  if (b.dataset.step === 'report') { showTab('tco'); setTimeout(() => $('tcoExport').scrollIntoView({behavior: 'smooth', block: 'center'}), 50); }
+  else showTab(b.dataset.step);
+});
+const _showTab = showTab;
+showTab = function (n) { _showTab(n); PRO.tab = n; if (n === 'tco') renderTco(); renderSteps(); };
+
+/* ───────── 계약 만기 알림 ───────── */
+function addMonths(d, n) { const x = new Date(d.getTime()), day = x.getDate(); x.setMonth(x.getMonth() + n); if (x.getDate() !== day) x.setDate(0); return x; }
+const ymd = d => d.toLocaleDateString('sv-SE');
+function deadlineInfo(g) {
+  if (!g.start) return null;
+  const s = new Date(g.start + 'T00:00:00'); if (isNaN(s)) return null;
+  const end = addMonths(s, g.term); end.setDate(end.getDate() - 1);
+  const notice = addMonths(end, -(g.notice || 0));
+  const t0 = new Date(todayStr() + 'T00:00:00');
+  return {start: s, end, notice, dEnd: Math.round((end - t0) / 864e5), dNotice: Math.round((notice - t0) / 864e5)};
+}
+function renderDeadline(g) {
+  const el = $('deadlineBar'), d = deadlineInfo(g);
+  if (!d) { el.hidden = true; return; }
+  const lv = d.dNotice < 0 ? 'bad' : d.dNotice <= 180 ? 'warn' : '';
+  const dd = n => n >= 0 ? `D-${n}` : `${-n}일 지남`;
+  el.hidden = false; el.className = 'dl ' + lv;
+  el.innerHTML = `<b>📅 계약 만료 ${ymd(d.end)} (${dd(d.dEnd)})</b><br>해지·갱신 통보 기한 <b>${ymd(d.notice)}</b> (${dd(d.dNotice)})` +
+    (d.dNotice < 0 && d.dEnd >= 0 ? '<br><span style="color:#b42318">통보 기한이 지났습니다. 계약서의 자동 갱신 조항을 바로 확인하세요.</span>' : d.dNotice <= 180 && d.dNotice >= 0 ? '<br>이전·갱신 협상을 시작할 시점입니다. 후보 건물 제안서를 받아 비교하세요.' : '') +
+    `<div class="row"><button class="btn-ghost btn-sm" id="icsBtn2">캘린더에 추가 (.ics)</button></div>`;
+  $('icsBtn2').onclick = downloadIcs;
+}
+function downloadIcs() {
+  const d = deadlineInfo(readMine()); if (!d) return;
+  const t = x => ymd(x).replace(/-/g, ''), nxt = x => { const y = new Date(x.getTime()); y.setDate(y.getDate() + 1); return t(y); };
+  const ev = (uid, title, day, alarms) => ['BEGIN:VEVENT', `UID:${uid}@rental-intelligence`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`, `DTSTART;VALUE=DATE:${t(day)}`, `DTEND;VALUE=DATE:${nxt(day)}`, `SUMMARY:${title}`,
+    ...alarms.flatMap(a => ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${title}`, `TRIGGER:-P${a}D`, 'END:VALARM']), 'END:VEVENT'];
+  const name = S.home ? S.home.title : '임차 건물';
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Rental Intelligence//KO', 'CALSCALE:GREGORIAN', ...ev('notice', `[임대차] ${name} 해지·갱신 통보 기한`, d.notice, [90, 30, 7]), ...ev('end', `[임대차] ${name} 계약 만료`, d.end, [90, 30])];
+  lines.push('END:VCALENDAR');
+  const url = URL.createObjectURL(new Blob([lines.join('\r\n')], {type: 'text/calendar;charset=utf-8'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'lease_deadlines.ics'; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ───────── 입력 확인 (경고) ───────── */
+function renderWarn(g) {
+  const w = [];
+  if (g.areaEx > g.areaLease && g.areaLease > 0) w.push('전용면적이 임대면적보다 큽니다. 두 값이 바뀌지 않았는지 확인하세요.');
+  const ratio = g.areaLease > 0 ? g.areaEx / g.areaLease * 100 : NaN;
+  if (Number.isFinite(ratio) && ratio <= 100 && (ratio < 40 || ratio > 90)) w.push(`전용률 ${ratio.toFixed(0)}%는 보통(약 45~75%) 범위를 벗어납니다. 면적 입력을 확인하세요.`);
+  if (g.free >= g.term) w.push('렌트프리가 계약기간 이상입니다.');
+  if (g.rate > 0.3) w.push('보증금 환산율이 30%를 넘습니다. % 단위로 입력했는지 확인하세요.');
+  if (g.dep > 0 && g.dep < g.rent) w.push('보증금이 월 임대료보다 작습니다. 금액 단위(원)를 확인하세요.');
+  $('nocWarn').innerHTML = w.map(x => `<div class="notice warn">⚠ ${esc(x)}</div>`).join('');
+}
+function afterCalc(g) { renderDeadline(g); renderWarn(g); renderSteps(); }
+
+/* ───────── 건축물대장 ───────── */
+const wonPy = m2 => `${nf.format(Math.round(m2))}㎡ (${nf.format(Math.round(m2 / PY))}평)`;
+function renderLedger(d, err) {
+  const el = $('ledgerBox'); if (!el) return;
+  if (!PRO.health.ledger_configured && PRO.health.status) { el.innerHTML = '<div class="hint">건축물대장 자동 조회: 서버 환경변수 <code>BUILDING_API_KEY</code>(공공데이터포털 인증키)를 넣으면 연면적·층수·승강기·주차·사용승인일이 자동으로 채워집니다.</div>'; return; }
+  if (err) { el.innerHTML = `<div class="hint err">건축물대장: ${esc(err)}</div>`; return; }
+  if (!d) { el.innerHTML = ''; return; }
+  const yrs = d.approved && /^\d{8}$/.test(d.approved) ? new Date().getFullYear() - Number(d.approved.slice(0, 4)) : null;
+  const appr = d.approved && /^\d{8}$/.test(d.approved) ? `${d.approved.slice(0, 4)}-${d.approved.slice(4, 6)}-${d.approved.slice(6)}` : '—';
+  el.innerHTML = `<div class="ledger"><b>🏛 건축물대장</b> <span class="hint" style="margin:0">${esc(d.address || '')}${d.name ? ' · ' + esc(d.name) : ''}</span><div class="kv2">` +
+    `<div><small>연면적</small><b>${d.tot_area_m2 ? wonPy(d.tot_area_m2) : '—'}</b></div>` +
+    `<div><small>층수</small><b>지상 ${d.floors_above ?? '—'} / 지하 ${d.floors_below ?? '—'}</b></div>` +
+    `<div><small>주용도</small><b>${esc(d.main_use || '—')}</b></div>` +
+    `<div><small>승강기</small><b>승용 ${d.elevators ?? '—'}${d.emergency_elevators ? ' · 비상용 ' + d.emergency_elevators : ''}대</b></div>` +
+    `<div><small>주차</small><b>${d.parking_total ? nf.format(d.parking_total) + '대' : '—'}</b></div>` +
+    `<div><small>사용승인일</small><b>${appr}${yrs != null ? ` (${yrs}년차)` : ''}</b></div>` +
+    `<div><small>기준층 면적(지상 중앙값)</small><b>${d.typical_floor_m2 ? wonPy(d.typical_floor_m2) : '—'}</b></div>` +
+    `<div><small>용적률 / 건폐율</small><b>${d.far_ratio ?? '—'}% / ${d.bc_ratio ?? '—'}%</b></div></div>` +
+    `<div class="hint" style="margin-bottom:0">${esc(d.source)} · 지번 기준${d.building_count > 1 ? ` · 동이 ${d.building_count}개라 연면적이 가장 큰 동을 표시` : ''} · 조회일 ${todayStr()}</div></div>`;
+}
+async function loadLedgerFor(lat, lon) { return api(`/api/ledger?latitude=${lat}&longitude=${lon}`); }
+function afterChoose(opt) {
+  PRO.ledger = null; renderLedger(null);
+  if (!opt.peek) { PRO.homeLedger = null; PRO.homeAn = null; }
+  loadLedgerNow();
+}
+async function loadLedgerNow() {
+  if (!S.sel) return;
+  if (!PRO.health.ledger_configured) { if (PRO.health.status) renderLedger(null); return; }
+  const key = S.sel.key, isHome = S.home && S.home.key === key;
+  $('ledgerBox').innerHTML = '<div class="hint"><span class="spin"></span>건축물대장을 조회하는 중...</div>';
+  try {
+    const d = await loadLedgerFor(S.sel.lat, S.sel.lon);
+    if (!S.sel || S.sel.key !== key) return;
+    PRO.ledger = d; if (isHome) PRO.homeLedger = d; renderLedger(d); renderTco();
+  } catch (e) { if (S.sel && S.sel.key === key) renderLedger(null, e.message); }
+}
+async function compLedger(id, btn) {
+  const c = comps.find(x => x.id === id); if (!c) return;
+  btn.disabled = true; btn.textContent = '조회 중...';
+  try {
+    const d = await loadLedgerFor(c.lat, c.lon);
+    c.ledger = {tot: d.tot_area_m2, up: d.floors_above, down: d.floors_below, typ: d.typical_floor_m2, elev: d.elevators, park: d.parking_total, appr: d.approved, use: d.main_use};
+    saveComps(); renderComps();
+  } catch (e) { setStatus('cStatus', `'${c.name}' 건축물대장 오류: ${e.message}`, true); btn.disabled = false; btn.textContent = '건축물대장'; }
+}
+
+/* ───────── 비교 건물 상세 조건 (추가 입력) ───────── */
+function cExtras() {
+  return {term: numOrU('cTerm'), esc: numOrU('cEsc') != null ? numOrU('cEsc') / 100 : undefined, parking: Number($('cParking').value) || 0, fitout: Number($('cFit').value) || 0, ti: Number($('cTi').value) || 0, move: Number($('cMove').value) || 0, restore: Number($('cRestore').value) || 0};
+}
+function clearExtras() { ['cTerm', 'cEsc', 'cParking', 'cFit', 'cTi', 'cMove', 'cRestore'].forEach(id => $(id).value = ''); }
+
+/* ───────── 제안서 자동 입력 ───────── */
+const PROP_FIELDS = [
+  ['name', '건물명', 'text'], ['address', '주소', 'text'], ['rent', '월 임대료 (원)', 'number'], ['fee', '월 관리비 (원)', 'number'], ['dep', '보증금 (원)', 'number'],
+  ['areaLease', '임대면적 (㎡)', 'number'], ['areaEx', '전용면적 (㎡)', 'number'], ['free', '렌트프리 (개월)', 'number'], ['term', '계약기간 (개월)', 'number'],
+  ['esc', '연 인상률 (%)', 'number'], ['ti', '인테리어 지원 TI (원)', 'number'], ['parking', '월 주차비 (원)', 'number']
+];
+let propFile = null;
+$('propFileBtn').onclick = () => $('propFile').click();
+$('propFile').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (f.size > 8 * 1024 * 1024) { setStatus('propStatus', '파일이 8MB를 넘습니다. 더 작은 파일을 올려 주세요.', true); return; }
+  if (!/^(application\/pdf|image\/(png|jpeg|webp))$/.test(f.type)) { setStatus('propStatus', 'PDF 또는 PNG·JPG·WEBP 이미지만 올릴 수 있습니다.', true); return; }
+  const rd = new FileReader();
+  rd.onload = () => { propFile = {b64: String(rd.result).split(',')[1], type: f.type, name: f.name}; $('propFileName').innerHTML = `${esc(f.name)} <button class="btn-x" id="propFileX" aria-label="파일 빼기">×</button>`; $('propFileX').onclick = () => { propFile = null; $('propFileName').textContent = ''; }; };
+  rd.readAsDataURL(f);
+};
+async function runExtract() {
+  const text = $('propText').value.trim();
+  if (!text && !propFile) { setStatus('propStatus', '제안서 내용을 붙여넣거나 파일을 올려 주세요.', true); return; }
+  const btn = $('propRun'); btn.disabled = true;
+  $('propStatus').classList.remove('err'); $('propStatus').innerHTML = '<span class="spin"></span>AI가 제안서를 읽는 중입니다 (10~40초)...';
+  try {
+    const r = await fetch('/api/extract', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text, file_base64: propFile ? propFile.b64 : null, media_type: propFile ? propFile.type : null})});
+    let d = null; try { d = await r.json(); } catch {}
+    if (!r.ok) throw new Error((d && d.detail) || `요청 실패 (${r.status})`);
+    PRO.props = d.proposals; renderProps(d);
+    setStatus('propStatus', d.proposals.length ? `${d.proposals.length}개 건물의 조건을 읽었습니다. 값을 확인한 뒤 추가하세요.` : '읽을 수 있는 임대 조건을 찾지 못했습니다. 내용을 더 붙여넣어 보세요.', !d.proposals.length);
+  } catch (e) { setStatus('propStatus', 'AI 읽기 오류: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+function renderProps(d) {
+  const confTxt = {high: '확실', medium: '보통', low: '확인 필요'};
+  $('propOut').innerHTML = (d.document_notes ? `<div class="notice">${esc(d.document_notes)}</div>` : '') + PRO.props.map((p, i) => {
+    const val = {name: p.name, address: p.address, rent: p.rent, fee: p.fee, dep: p.dep, areaLease: p.area_lease_m2, areaEx: p.area_ex_m2, free: p.free, term: p.term, esc: p.esc_pct, ti: p.ti, parking: p.parking};
+    return `<div class="prop" data-i="${i}"><div class="ph"><b>${esc(p.name || '이름 없음')}</b><span class="conf ${p.confidence}">${confTxt[p.confidence]}</span>${p.floor ? `<span class="tag">${esc(p.floor)}</span>` : ''}</div>` +
+      (p.evidence ? `<div class="ev">“${esc(p.evidence)}”</div>` : '') +
+      `<div class="fields">${PROP_FIELDS.map(([k, lb, ty]) => `<div class="${k === 'name' || k === 'address' ? 'span2' : ''}"><label>${lb}</label><input data-k="${k}" type="${ty}" ${ty === 'number' ? 'step="any" min="0"' : ''} value="${val[k] == null ? '' : esc(val[k])}"></div>`).join('')}</div>` +
+      [...(p.warnings || []), p.notes].filter(Boolean).map(w => `<div class="pw">⚠ ${esc(w)}</div>`).join('') +
+      `<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn-lime btn-sm" data-pa="add">비교 목록에 추가</button><button class="btn-ghost btn-sm" data-pa="mine">내 현재 임대 조건으로 설정</button></div></div>`;
+  }).join('');
+  $('propOut').querySelectorAll('.prop').forEach(el => {
+    el.querySelector('[data-pa=add]').onclick = e => addProp(el, e.target);
+    el.querySelector('[data-pa=mine]').onclick = () => setMineFromProp(el);
+  });
+}
+const pv = (el, k) => el.querySelector(`[data-k="${k}"]`).value.trim();
+const pn = (el, k) => Number(pv(el, k)) || 0;
+async function addProp(el, btn) {
+  const g = readMine(), aL = pn(el, 'areaLease'), aE = pn(el, 'areaEx');
+  const area = g.basis === 'ex' ? (aE || aL) : (aL || aE);
+  if (!(area > 0)) { setStatus('propStatus', '면적을 입력하세요.', true); return; }
+  if (pn(el, 'rent') <= 0 && pn(el, 'fee') <= 0) { setStatus('propStatus', '임대료 또는 관리비를 입력하세요.', true); return; }
+  btn.disabled = true;
+  const c = {id: Date.now() + Math.floor(Math.random() * 1000), name: pv(el, 'name'), address: pv(el, 'address'), rent: pn(el, 'rent'), fee: pn(el, 'fee'), dep: pn(el, 'dep'), area, areaLease: aL || undefined, areaEx: aE || undefined, free: pn(el, 'free'),
+    term: pn(el, 'term') || undefined, esc: pv(el, 'esc') !== '' ? pn(el, 'esc') / 100 : undefined, ti: pn(el, 'ti'), parking: pn(el, 'parking'), fitout: 0, move: 0, restore: 0, fromProposal: true};
+  try {
+    if (c.address || c.name) { const geo = await geocode(c.address, c.name); if (geo) { c.lat = geo.lat; c.lon = geo.lon; c.resolved = geo.resolved; c.geoBy = geo.how; } }
+    if (!c.name) c.name = c.resolved || c.address || `제안 ${comps.length + 1}`;
+    comps.push(c); saveComps(); renderComps();
+    el.classList.add('added'); btn.textContent = '✓ 추가됨';
+    const aDiff = g.basis === 'ex' && !aE ? ' (전용면적이 없어 임대면적으로 계산했습니다)' : '';
+    setStatus('propStatus', `'${c.name}'을(를) 비교 목록에 추가했습니다${aDiff}. 인테리어·이사비·원상복구비는 비교 탭에서 확인하세요.`);
+  } catch (e) { setStatus('propStatus', '추가 오류: ' + e.message, true); btn.disabled = false; }
+}
+function setMineFromProp(el) {
+  if (!confirm('현재 입력된 "내 임대 조건"을 이 제안서 값으로 바꿀까요?')) return;
+  const set = (id, v) => { if (v !== '' && v != null) $(id).value = v; };
+  set('rent', pn(el, 'rent') || ''); set('fee', pn(el, 'fee') || ''); set('deposit', pn(el, 'dep') || ''); set('areaLease', pn(el, 'areaLease') || ''); set('areaEx', pn(el, 'areaEx') || '');
+  set('term', pn(el, 'term') || ''); set('free', pv(el, 'free') === '' ? '' : pn(el, 'free')); set('esc', pv(el, 'esc') === '' ? '' : pn(el, 'esc')); set('xParking', pn(el, 'parking') || ''); set('xTi', pn(el, 'ti') || '');
+  calc(); showTab('noc'); setStatus('appStatus', '제안서 값으로 내 임대 조건을 바꿨습니다. 건물은 위에서 직접 선택하세요.');
+}
+$('propRun').onclick = runExtract;
+
+/* ───────── 총비용(TCO) 계산 ───────── */
+function tcoCalc(b, g, H, sc) {
+  const esc = b.esc != null ? b.esc : g.esc, free = (b.free || 0) + (sc ? sc.free : 0), k = sc ? 1 - sc.disc : 1, vatR = g.vat ? 0.1 : 0, mr = g.disc / 12, park = b.parking || 0;
+  let rent = 0, fee = 0, pk = 0, vat = 0, dep = 0, npv = 0;
+  for (let m = 1; m <= H; m++) {
+    const rm = m <= free ? 0 : b.rent * Math.pow(1 + esc, Math.floor((m - 1) / 12)) * k;
+    const base = rm + b.fee + park, v = base * vatR, di = b.dep * g.rate / 12;
+    rent += rm; fee += b.fee; pk += park; vat += v; dep += di;
+    npv += (base + v + di) / Math.pow(1 + mr, m);
+  }
+  const once = (b.fitout || 0) - (b.ti || 0) + (b.move || 0), restore = b.restore || 0;
+  npv += once + restore / Math.pow(1 + mr, H);
+  const total = rent + fee + pk + vat + dep + once + restore;
+  return {H, rent, fee, park: pk, vat, dep, once, restore, total, npv};
+}
+function tcoSubjects() {
+  const g = readMine(), area = areaOf(g), npv = $('tcoNpv').checked, own = $('tcoHor').value === 'own';
+  const sc = $('scOn').checked ? {disc: (Number($('scDisc').value) || 0) / 100, free: Number($('scFree').value) || 0} : null;
+  const subs = [];
+  if (area > 0) subs.push({mine: true, name: (S.home ? S.home.title : '현재 건물') + ' (현재)', area, b: {rent: g.rent, fee: g.fee, dep: g.dep, free: g.free, esc: g.esc, term: g.term, parking: g.parking, fitout: g.fitout, ti: g.ti, restore: g.restore, move: g.move}});
+  visibleComps().forEach(c => subs.push({mine: false, c, name: c.name, area: c.area, b: {rent: c.rent, fee: c.fee, dep: c.dep, free: c.free, esc: c.esc, term: c.term, parking: c.parking, fitout: c.fitout, ti: c.ti, restore: c.restore, move: c.move}, sc}));
+  subs.forEach(s => {
+    const H = own ? (s.b.term || g.term) : g.term;
+    s.r = tcoCalc(s.b, g, H, s.sc || null);
+    s.val = npv ? s.r.npv : s.r.total;
+    s.perArea = s.area > 0 ? s.val / H / s.area : NaN;
+    s.H = H;
+  });
+  return {g, subs, npv, sc};
+}
+const TC = [['rent', '임대료', '#1f6feb'], ['fee', '관리비', '#75a7ee'], ['dep', '보증금 이자', '#e0a02a'], ['etc', '주차·부가세', '#9aa5a0'], ['once', '인테리어·이사', '#7b3fe4'], ['restore', '원상복구', '#c2412d']];
+function renderTco() {
+  const out = $('tcoTable'); if (!out) return;
+  const {g, subs, npv, sc} = tcoSubjects(), f = unitFactor(g), u = unitLabel(g);
+  const mine = subs.find(s => s.mine);
+  const rows = subs.filter(s => Number.isFinite(s.perArea)).sort((a, b) => a.perArea - b.perArea);
+  PRO.tcoRows = rows;
+  if (!mine) { $('tcoVerdict').innerHTML = ''; out.innerHTML = '<div class="hint">NOC 탭에서 내 임대 조건과 면적을 먼저 입력하세요.</div>'; $('scoreOut').innerHTML = ''; renderSteps(); return; }
+  if (rows.length < 2) { $('tcoVerdict').innerHTML = ''; out.innerHTML = `<div class="tcr mine"><div class="t1"><span class="nm">${esc(mine.name)}</span><span class="pa">${fmt(mine.perArea * f)} <small>${u}</small></span></div><div class="t2">${mine.H}개월 총비용 ${wonShort(mine.val)}원</div></div><div class="hint">제안서 탭에서 후보 건물을 읽어 오거나 비교 탭에서 건물을 추가하면 총비용 순위와 결론이 나옵니다.</div>`; $('scoreOut').innerHTML = ''; renderSteps(); return; }
+  const best = rows[0];
+  const yearSave = r => (mine.perArea - r.perArea) * mine.area * 12;       // 내 면적 기준, 연간 절감(+) / 추가(-)
+  const hasExtra = r => r.mine || (r.c && (r.c.fitout || r.c.move || r.c.restore || r.c.ti));
+  const missing = rows.filter(r => !r.mine && !hasExtra(r)).length;
+  // 결론
+  let v = '';
+  if (best.mine) {
+    const second = rows[1];
+    v = `<div class="vh">✅ 현재 건물을 유지하는 것이 가장 저렴합니다</div>${H_(g, npv)} 기준 면적당 월 <b>${fmt(mine.perArea * f)}${u}</b>. 2위 ${esc(second.name)}보다 ${pct((second.perArea / mine.perArea - 1) * 100, 1).replace('+', '')} 낮습니다. 이전 시 숨은 비용(인테리어·이사·원상복구)을 반영해도 현재가 유리합니다.`;
+  } else {
+    const ys = yearSave(best), dp = (best.perArea / mine.perArea - 1) * 100;
+    const an = best.c && best.c.analysis, minAn = PRO.homeAn;
+    const wd = an && minAn && Number.isFinite(an.walk) && Number.isFinite(minAn.walk) ? an.walk - minAn.walk : null;
+    const walkTxt = wd != null && Math.abs(wd) >= 0.5 ? ` 다만 역까지 도보는 현재 ${minAn.walk}분 → ${an.walk}분(${wd >= 0 ? '+' : ''}${wd.toFixed(1)}분)으로 ${wd > 0 ? '더 걸립니다' : '더 가깝습니다'}.` : '';
+    v = `<div class="vh">🏆 ${esc(best.name)}이(가) 가장 저렴합니다</div>${H_(g, npv)} 기준 면적당 월 <b>${fmt(best.perArea * f)}${u}</b> · 현재보다 <b>${pct(dp, 1)}</b>, 내 면적(${nf.format(Math.round(mine.area / PY))}평) 기준 <b>연 ${ys >= 0 ? wonShort(ys) + '원 절감' : wonShort(-ys) + '원 추가'}</b>.${walkTxt}`;
+  }
+  const cheaper = rows.filter(r => !r.mine && r.perArea < mine.perArea);
+  v += `<ul><li>현재보다 저렴한 후보 ${cheaper.length}곳 / 전체 후보 ${rows.length - 1}곳</li>` + (missing ? `<li>인테리어·이사·원상복구·TI가 입력되지 않은 후보가 ${missing}곳입니다. 입력하면 순위가 바뀔 수 있습니다.</li>` : '') + (sc ? `<li>협상 가정(임대료 -${Math.round(sc.disc * 100)}%, 렌트프리 +${sc.free}개월)이 후보에 적용된 결과입니다.</li>` : '') + '</ul>';
+  $('tcoVerdict').innerHTML = `<div class="vbox">${v}</div>`;
+  // 순위 카드
+  const leg = `<div class="tleg">${TC.map(([, n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div>`;
+  out.innerHTML = leg + rows.map((r, i) => {
+    const x = r.r, parts = {rent: x.rent, fee: x.fee, dep: x.dep, etc: x.park + x.vat, once: Math.max(0, x.once), restore: x.restore}, tot = Object.values(parts).reduce((a, b) => a + b, 0) || 1;
+    const dp = mine && !r.mine ? (r.perArea / mine.perArea - 1) * 100 : null, ys = !r.mine ? yearSave(r) : null;
+    return `<div class="tcr${r.mine ? ' mine' : ''}${i === 0 ? ' best' : ''}" ${r.c ? `data-id="${r.c.id}"` : ''}><div class="t1"><span class="rk">${i + 1}</span><span class="nm" title="${esc(r.name)}">${esc(r.name)}</span><span class="pa">${fmt(r.perArea * f)} <small style="font-weight:500">${u.replace('원/', '')}</small></span></div>` +
+      `<div class="t2">${r.H}개월 총 <b>${wonShort(r.val)}원</b>${npv ? '(현재가치)' : ''} · 월평균 ${wonShort(r.val / r.H)}원${dp != null ? ` · 현재 대비 <span class="dlt ${dp > 0 ? 'up' : 'dn'}">${pct(dp, 1)}</span> (연 ${ys >= 0 ? '-' : '+'}${wonShort(Math.abs(ys))}원)` : ' · 기준'}${x.once || x.restore ? `<br>일회성: 인테리어·이사 ${wonShort(x.once)}원${x.restore ? ' · 원상복구 ' + wonShort(x.restore) + '원' : ''}` : ''}</div>` +
+      `<div class="stk">${TC.map(([k, n, c]) => parts[k] > 0 ? `<span style="width:${parts[k] / tot * 100}%;background:${c}" title="${n} ${wonShort(parts[k])}원"></span>` : '').join('')}</div></div>`;
+  }).join('') + `<div class="hint">면적당 비용 = (계약기간 임대료 + 관리비 + 보증금 이자 + 주차 + 부가세 + 인테리어·이사 − TI + 원상복구) ÷ 기간 ÷ 면적. 보증금 이자는 환산율(${f1(g.rate * 100)}%)로 계산합니다${npv ? `, 현재가치는 할인율 ${f1(g.disc * 100)}%` : ''}. 계산 기준일 ${todayStr()}. 입력값 기반 계산이며 계약 판단 전 계약서로 확인하세요.</div>`;
+  out.querySelectorAll('.tcr[data-id]').forEach(el => el.onclick = () => focusComp(Number(el.dataset.id)));
+  renderScore(rows);
+  renderCommuteOut();
+  renderSteps();
+}
+const H_ = (g, npv) => `${g.term}개월${$('tcoHor').value === 'own' ? '(각 건물 계약기간)' : ''}${npv ? ' 현재가치' : ''}`;
+
+/* ───────── 종합 점수표 ───────── */
+const CRIT = [['cost', '비용', '낮을수록 좋음'], ['walk', '역 도보', '짧을수록 좋음'], ['fb', '상권', '음식·카페 많을수록'], ['size', '기준층 면적', '클수록'], ['commute', '통근', '가까울수록']];
+function critVals(rows) {
+  return rows.map(r => {
+    const an = r.mine ? PRO.homeAn : (r.c && r.c.analysis), lg = r.mine ? PRO.homeLedger : (r.c && r.c.ledger);
+    return {cost: r.perArea, walk: an && Number.isFinite(an.walk) ? an.walk : null, fb: an && Number.isFinite(an.fb) ? an.fb : null,
+      size: lg ? (lg.typ_m2 ?? lg.typ ?? lg.typical_floor_m2 ?? null) : null, commute: PRO.commuteAvg && PRO.commuteAvg.has(r.mine ? 'mine' : r.c.id) ? PRO.commuteAvg.get(r.mine ? 'mine' : r.c.id) : null};
+  });
+}
+function renderScore(rows) {
+  const W = PRO.weights;
+  CRIT.forEach(([k]) => { $('w_' + k).value = W[k]; $('wv_' + k).textContent = W[k]; });
+  const vals = critVals(rows), lowGood = {cost: true, walk: true, fb: false, size: false, commute: true};
+  const norm = {};
+  CRIT.forEach(([k]) => {
+    const xs = vals.map(v => v[k]).filter(x => x != null && Number.isFinite(x));
+    if (xs.length < 2) { norm[k] = null; return; }
+    const lo = Math.min(...xs), hi = Math.max(...xs);
+    norm[k] = x => x == null ? null : hi === lo ? 100 : 100 * (lowGood[k] ? (hi - x) / (hi - lo) : (x - lo) / (hi - lo));
+  });
+  const wsum = CRIT.reduce((a, [k]) => a + (W[k] > 0 ? W[k] : 0), 0);
+  const list = rows.map((r, i) => {
+    let num = 0, den = 0; const per = {};
+    CRIT.forEach(([k]) => { const s = norm[k] ? norm[k](vals[i][k]) : null; per[k] = s; if (s != null && W[k] > 0) { num += W[k] * s; den += W[k]; } });
+    return {r, per, score: den > 0 ? num / den : null, cover: wsum > 0 ? den / wsum : 0};
+  }).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  const usable = CRIT.filter(([k]) => norm[k] && W[k] > 0).map(([, n]) => n);
+  $('scoreOut').innerHTML = (usable.length ? `<div class="hint">점수에 반영된 항목: ${usable.join(' · ')}. 데이터가 없는 항목(입지 분석 전 등)은 빼고 계산합니다.</div>` : '<div class="hint">가중치를 0보다 크게 설정하세요.</div>') + list.map((x, i) => `<div class="sc"><b>${i + 1}</b><div><div class="bar"><i style="width:${x.score == null ? 0 : x.score}%"></i></div><div style="margin-top:3px;font-weight:${x.r.mine ? 800 : 600}">${esc(x.r.name)}</div></div><b style="text-align:right">${x.score == null ? '—' : Math.round(x.score)}점</b>` +
+    `<div class="mini">${CRIT.map(([k, n]) => `<span>${n} ${x.per[k] == null ? '—' : Math.round(x.per[k])}</span>`).join('')}${x.cover < 0.99 ? `<span style="background:#fff8e6">정보 ${Math.round(x.cover * 100)}%만 반영</span>` : ''}</div></div>`).join('');
+  PRO.scoreList = list;
+}
+CRIT.forEach(([k]) => { $('w_' + k).oninput = () => { PRO.weights[k] = Number($('w_' + k).value); $('wv_' + k).textContent = PRO.weights[k]; store.save('ri_weights', PRO.weights); if (PRO.tcoRows) renderScore(PRO.tcoRows); }; });
+
+/* 입지 일괄 분석 (역 도보 · 상권) */
+async function analyzeLoc(lat, lon) {
+  const [acc, com] = await Promise.all([api(`/api/access?longitude=${lon}&latitude=${lat}`), api(`/api/commercial?longitude=${lon}&latitude=${lat}&radius=500`)]);
+  const best = acc.stations[0];
+  return {station: best ? best.name : '없음', straight: best ? best.straight_distance_m : null, walk: best ? best.walk.duration_min : null, estimated: best ? best.walk.estimated : false,
+    fb: com.items.filter(i => i.code === 'FD6' || i.code === 'CE7').reduce((a, i) => a + i.count, 0)};
+}
+async function batchAnalyze() {
+  const jobs = [];
+  if (S.home && (!PRO.homeAn || PRO.homeAn.fb == null)) jobs.push({home: true, lat: S.home.lat, lon: S.home.lon});
+  visibleComps().forEach(c => { if (c.lat != null && !c.analysis) jobs.push({c, lat: c.lat, lon: c.lon}); });
+  const btn = $('batchBtn');
+  if (!jobs.length) { setStatus('batchStatus', '분석할 건물이 없거나 모두 분석되어 있습니다.'); return; }
+  btn.disabled = true; let n = 0, fail = 0;
+  const run = async j => {
+    try { const a = await analyzeLoc(j.lat, j.lon); if (j.home) PRO.homeAn = a; else j.c.analysis = a; }
+    catch { fail++; }
+    n++; $('batchStatus').classList.remove('err'); $('batchStatus').innerHTML = `<span class="spin"></span>입지 분석 중 ${n}/${jobs.length}...`;
+  };
+  const q = jobs.slice();
+  await Promise.all([0, 1, 2].map(async () => { while (q.length) await run(q.shift()); }));
+  saveComps(); renderComps(); btn.disabled = false;
+  setStatus('batchStatus', `입지 분석을 마쳤습니다 (${jobs.length - fail}/${jobs.length}곳)${fail ? ' · 실패한 곳은 다시 눌러 주세요' : ''}.`, !!fail);
+}
+$('batchBtn').onclick = batchAnalyze;
+
+/* 역 접근 결과를 내 건물 입지로 저장 */
+const _renderAccess = renderAccess;
+renderAccess = function (d, auto) {
+  _renderAccess(d, auto);
+  if (S.home && S.sel && S.sel.key === S.home.key && d.stations && d.stations[0]) {
+    const b = d.stations[0]; PRO.homeAn = Object.assign({}, PRO.homeAn, {station: b.name, straight: b.straight_distance_m, walk: b.walk.duration_min, estimated: b.walk.estimated});
+    if (PRO.tcoRows) renderTco();
+  }
+};
+
+/* ───────── 통근 분석 (구·시 단위 인원 → 직선거리) ───────── */
+const CENTROID = {종로구: [37.5735, 126.979], 중구: [37.5641, 126.9979], 용산구: [37.5326, 126.9906], 성동구: [37.5634, 127.0369], 광진구: [37.5385, 127.0823], 동대문구: [37.5744, 127.0396], 중랑구: [37.6066, 127.0927], 성북구: [37.5894, 127.0167], 강북구: [37.6397, 127.0257], 도봉구: [37.6688, 127.0471], 노원구: [37.6542, 127.0568], 은평구: [37.6027, 126.9291], 서대문구: [37.5791, 126.9368], 마포구: [37.5663, 126.9019], 양천구: [37.5169, 126.8664], 강서구: [37.551, 126.8495], 구로구: [37.4954, 126.8874], 금천구: [37.4519, 126.902], 영등포구: [37.5264, 126.8963], 동작구: [37.5124, 126.9393], 관악구: [37.4784, 126.9516], 서초구: [37.4837, 127.0324], 강남구: [37.5172, 127.0473], 송파구: [37.5145, 127.1059], 강동구: [37.5301, 127.1238],
+  성남시: [37.4, 127.12], 고양시: [37.6584, 126.832], 용인시: [37.2411, 127.1776], 수원시: [37.2636, 127.0286], 부천시: [37.5034, 126.766], 안양시: [37.3943, 126.9568], 하남시: [37.5393, 127.2148], 광명시: [37.4786, 126.8646], 과천시: [37.4292, 126.9876], 인천시: [37.4563, 126.7052], 구리시: [37.5943, 127.1296], 남양주시: [37.636, 127.2165], 의정부시: [37.7381, 127.0337], 군포시: [37.3617, 126.9352], 의왕시: [37.3449, 126.9683], 시흥시: [37.38, 126.803], 안산시: [37.3219, 126.8309], 화성시: [37.1995, 126.8312], 김포시: [37.6153, 126.7156], 파주시: [37.76, 126.78], 평택시: [36.9921, 127.1129]};
+function parseCommute(txt) {
+  const ok = [], bad = [];
+  txt.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean).forEach(s => {
+    const m = s.match(/^([가-힣]+?)\s*[:=]?\s*(\d+)\s*명?$/);
+    const key = m && Object.keys(CENTROID).find(k => k === m[1] || k.replace(/(구|시)$/, '') === m[1].replace(/(구|시)$/, ''));
+    if (key) ok.push({name: key, n: Number(m[2])}); else bad.push(s);
+  });
+  return {ok, bad};
+}
+function renderCommuteOut() {
+  const el = $('commuteOut'); if (!el) return;
+  PRO.commuteAvg = new Map();
+  const {ok, bad} = parseCommute($('commuteIn').value);
+  if (!ok.length) { el.innerHTML = bad.length ? `<div class="hint err">인식하지 못한 항목: ${esc(bad.join(', '))}</div>` : '<div class="hint">예: 송파구 12, 강남구 8, 성남시 5 (쉼표나 줄바꿈으로 구분, 개인 주소는 입력하지 마세요)</div>'; return; }
+  const tot = ok.reduce((a, x) => a + x.n, 0), pts = [];
+  if (S.home) pts.push({id: 'mine', name: (S.home.title || '현재 건물') + ' (현재)', lat: S.home.lat, lon: S.home.lon});
+  comps.filter(c => c.lat != null).forEach(c => pts.push({id: c.id, name: c.name, lat: c.lat, lon: c.lon}));
+  const rowsC = pts.map(p => {
+    let s = 0, near = 0; ok.forEach(x => { const km = distM(p.lat, p.lon, CENTROID[x.name][0], CENTROID[x.name][1]) / 1000; s += km * x.n; if (km <= 10) near += x.n; });
+    const avg = s / tot; PRO.commuteAvg.set(p.id, avg); return {p, avg, near: near / tot * 100};
+  }).sort((a, b) => a.avg - b.avg);
+  el.innerHTML = `<div class="hint">직원 ${tot}명 · 구·시 중심점에서 건물까지 직선거리 평균입니다 (실제 통근시간 아님). 대략적인 시간은 거리 ÷ 25km/h + 10분으로 가정했습니다.</div>` +
+    rowsC.map((x, i) => `<div class="sc"><b>${i + 1}</b><div style="font-weight:600">${esc(x.p.name)}</div><b style="text-align:right">${x.avg.toFixed(1)}km</b><div class="mini"><span>10km 이내 ${Math.round(x.near)}%</span><span>추정 약 ${Math.round(10 + x.avg / 25 * 60)}분</span></div></div>`).join('') + (bad.length ? `<div class="hint err">인식하지 못한 항목: ${esc(bad.join(', '))}</div>` : '');
+}
+$('commuteIn').value = PRO.commuteTxt;
+$('commuteIn').oninput = () => { store.save('ri_commute', $('commuteIn').value); PRO.commuteTxt = $('commuteIn').value; renderCommuteOut(); if (PRO.tcoRows) renderScore(PRO.tcoRows); };
+
+/* ───────── 내보내기 ───────── */
+function tcoCsv() {
+  if (!PRO.tcoRows) { renderTco(); }
+  const rows = PRO.tcoRows || []; if (!rows.length) return;
+  const g = readMine(), f = unitFactor(g), q = v => `"${String(v ?? '').replace(/"/g, '""')}"`, mine = rows.find(r => r.mine);
+  const head = ['순위', '건물', '구분', '비교기간(개월)', '면적㎡', '임대료합계', '관리비합계', '보증금이자', '주차', '부가세', '인테리어·이사(지원금 차감)', '원상복구', '총비용', '현재가치', `면적당 월 총비용(${unitLabel(g)})`, '현재 대비(%)'];
+  const lines = [head.map(q).join(',')].concat(rows.map((r, i) => [i + 1, r.name, r.mine ? '현재' : '후보', r.H, Math.round(r.area), Math.round(r.r.rent), Math.round(r.r.fee), Math.round(r.r.dep), Math.round(r.r.park), Math.round(r.r.vat), Math.round(r.r.once), Math.round(r.r.restore), Math.round(r.r.total), Math.round(r.r.npv), Math.round(r.perArea * f), mine && !r.mine ? ((r.perArea / mine.perArea - 1) * 100).toFixed(1) : ''].map(q).join(',')));
+  const url = URL.createObjectURL(new Blob(['﻿' + lines.join('\r\n')], {type: 'text/csv;charset=utf-8'}));
+  const a = document.createElement('a'); a.href = url; a.download = `tco_comparison_${todayStr()}.csv`; a.click(); URL.revokeObjectURL(url);
+}
+function tcoReportHtml() {
+  renderTco();
+  const rows = PRO.tcoRows; if (!rows || rows.length < 2) return '';
+  const g = readMine(), f = unitFactor(g), u = unitLabel(g), mine = rows.find(r => r.mine);
+  let h = `<h2>결론</h2><div class="foot" style="margin:0;font-size:12px;color:#1f2933;line-height:1.7">${$('tcoVerdict').innerHTML.replace(/<ul>[\s\S]*<\/ul>/, '')}</div>`;
+  h += `<h2>총비용 비교 (${g.term}개월 기준, 면적당 월 ${u})</h2><table><tr><th>순위</th><th>건물</th><th>면적당 월</th><th>${PRO.tcoRows[0].H}개월 총비용</th><th>현재 대비</th><th>일회성 비용</th></tr>` +
+    rows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.mine ? '<b>' + esc(r.name) + '</b>' : esc(r.name)}</td><td>${fmt(r.perArea * f)}</td><td>${wonShort(r.val)}원</td><td>${mine && !r.mine ? pct((r.perArea / mine.perArea - 1) * 100) : '기준'}</td><td>${wonShort(r.r.once + r.r.restore)}원</td></tr>`).join('') + '</table>';
+  if (PRO.scoreList && PRO.scoreList.some(x => x.score != null)) h += `<h2>종합 점수</h2><table><tr><th>순위</th><th>건물</th><th>총점</th>${CRIT.map(([, n]) => `<th>${n}</th>`).join('')}</tr>` + PRO.scoreList.map((x, i) => `<tr><td>${i + 1}</td><td>${esc(x.r.name)}</td><td>${x.score == null ? '—' : Math.round(x.score)}</td>${CRIT.map(([k]) => `<td>${x.per[k] == null ? '—' : Math.round(x.per[k])}</td>`).join('')}</tr>`).join('') + '</table>';
+  const d = deadlineInfo(g);
+  if (d) h += `<div class="foot">계약 만료 ${ymd(d.end)} · 해지·갱신 통보 기한 ${ymd(d.notice)}</div>`;
+  if (PRO.homeLedger) { const l = PRO.homeLedger; h += `<div class="foot">건축물대장(${esc(l.address || '')}): 연면적 ${l.tot_area_m2 ? nf.format(Math.round(l.tot_area_m2)) + '㎡' : '—'} · 지상 ${l.floors_above ?? '—'}/지하 ${l.floors_below ?? '—'}층 · 승강기 ${l.elevators ?? '—'} · 주차 ${l.parking_total ?? '—'} · 사용승인 ${esc(l.approved || '—')} (출처: 국토교통부 건축HUB)</div>`; }
+  return h;
+}
+$('tcoCsvBtn').onclick = tcoCsv;
+$('tcoPrint').onclick = printReport;
+$('icsBtn').onclick = downloadIcs;
+
+/* ───────── 이벤트 ───────── */
+['tcoHor', 'tcoNpv', 'scOn', 'scDisc', 'scFree'].forEach(id => $(id).addEventListener('change', renderTco));
+['scDisc', 'scFree'].forEach(id => $(id).addEventListener('input', renderTco));
+$('cScope').onchange = renderComps;
+function afterComps() { if (PRO.tab === 'tco' || PRO.tcoRows) renderTco(); renderSteps(); }
+
+/* 초기 화면 */
+(function init() {
+  if (!$('lStart').value) { /* 계약 시작일은 비워 둠 */ }
+  afterCalc(readMine());
+  renderCommuteOut();
+  renderTco();
+  if (S.sel) loadLedgerNow();
+})();
+
 </script>
 </body>
 </html>
