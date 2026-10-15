@@ -419,6 +419,41 @@ button:hover{filter:brightness(1.08)}
 .cSel{width:18px;height:18px;vertical-align:-4px;margin-right:4px;accent-color:#03c75a}
 #cList .card .tag2{display:inline-block;font-size:10.5px;background:#fff8e6;border:1px solid #e0a02a;border-radius:999px;padding:0 7px;margin-left:6px;color:#8a5a00}
 #cTools{margin-top:8px}
+
+/* 점수표 */
+.sc2{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:#fff}
+.sc2.mine{border-color:#e07b2a;background:#fff8f0}
+.sc2h{display:flex;align-items:center;gap:8px}
+.sc2 .rk{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#03c75a;color:#fff;font-size:12px;font-weight:800}
+.sc2 .nm{flex:1;min-width:0;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc2 .pt{flex:none;font-size:14px}
+.sc2 .bar{height:9px;background:#eef1f3;border-radius:5px;overflow:hidden;margin-top:8px}
+.sc2 .bar i{display:block;height:100%;background:#03c75a}
+.sc2 .mini{display:flex;gap:4px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin-top:7px}
+.sc2 .mini span{background:#f1f3f5;border-radius:6px;padding:1px 6px}
+/* 내 임대 바 · 후보 선택 */
+.minebar{display:flex;align-items:stretch;margin:8px 12px 0;border:1px solid #e07b2a;background:#fff8f0;border-radius:12px;overflow:hidden}
+.minebar.empty{align-items:center;justify-content:space-between;padding:8px 12px;border-color:var(--line);background:#fff;font-size:12px}
+.minebar .mbmain{flex:1;min-width:0;text-align:left;background:transparent;border:0;padding:8px 12px;display:flex;flex-direction:column;gap:2px;color:#1f2933;font-weight:400}
+.minebar .mt{font-weight:800;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.minebar .ms{font-size:11px;color:#5d6963;line-height:1.5}
+.minebar .mbx{flex:none;width:38px;background:transparent;color:#8a5a00;font-size:15px;border:0;border-left:1px solid #f0d3b4;border-radius:0}
+.minebar .mbx:hover{background:#fdeedd}
+.candchips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.cc{display:inline-flex;align-items:stretch;border:1px solid #cfe9da;background:#fff;border-radius:999px;overflow:hidden}
+.cc.on{border-color:#03c75a;background:#03c75a}
+.cc button{background:transparent;border:0;padding:6px 10px;font-size:12px;color:#1f2933;font-weight:600;border-radius:0}
+.cc.on button{color:#fff}
+.cc .ccx{padding:6px 9px 6px 4px;opacity:.65;font-weight:400}
+.candcard{border:1px solid #cfe9da;background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.6}
+.candcard .cch{font-size:12px;color:#0b6b34}
+.candcard .ccm{margin-top:3px}
+#mineBar,#peekBar,#candBar{min-width:0;max-width:100%}
+.minebar{min-width:0;max-width:calc(100% - 24px)}
+.minebar .mbmain{white-space:normal;overflow:hidden}
+.minebar .ms{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+.cc button{white-space:normal;text-align:left}
+.cc{max-width:100%}
 </style>
 </head>
 <body>
@@ -456,6 +491,8 @@ button:hover{filter:brightness(1.08)}
     <button type="button" data-step="tco"><i>3</i>총비용 비교</button>
     <button type="button" data-step="report"><i>4</i>보고서</button>
   </nav>
+  <div id="mineBar"></div>
+  <div id="peekBar" class="notice" hidden style="margin:8px 12px 0"></div>
 
   <div class="tabs" role="tablist" aria-label="분석 항목">
     <button role="tab" aria-selected="true" data-tab="noc"><span class="ic">💰</span>NOC</button>
@@ -748,7 +785,6 @@ button:hover{filter:brightness(1.08)}
     <div class="wrow"><span>규모</span><input type="range" id="wSize" min="0" max="3" step="1" value="1"><b id="wSizeV">1</b></div>
     <button class="wide btn-lime" id="simBtn">유사 건물 찾기</button>
     <div id="simStatus" class="status">건물을 먼저 검색해 선택하세요.</div>
-    <div id="peekBar" class="notice" hidden></div>
     <div class="row" style="margin-top:6px"><button class="btn-ghost btn-sm" id="simClear" type="button">찾은 결과 지우기</button></div>
     <div id="simOut"></div>
 
@@ -2868,7 +2904,7 @@ function renderScore(rows) {
     return {r, per, score: den > 0 ? num / den : null, cover: wsum > 0 ? den / wsum : 0};
   }).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
   const usable = CRIT.filter(([k]) => norm[k] && W[k] > 0).map(([, n]) => n);
-  $('scoreOut').innerHTML = (usable.length ? `<div class="hint">점수에 반영된 항목: ${usable.join(' · ')}. 데이터가 없는 항목(입지 분석 전 등)은 빼고 계산합니다.</div>` : '<div class="hint">가중치를 0보다 크게 설정하세요.</div>') + list.map((x, i) => `<div class="sc"><b>${i + 1}</b><div><div class="bar"><i style="width:${x.score == null ? 0 : x.score}%"></i></div><div style="margin-top:3px;font-weight:${x.r.mine ? 800 : 600}">${esc(x.r.name)}</div></div><b style="text-align:right">${x.score == null ? '—' : Math.round(x.score)}점</b>` +
+  $('scoreOut').innerHTML = (usable.length ? `<div class="hint">점수에 반영된 항목: ${usable.join(' · ')}. 데이터가 없는 항목(입지 분석 전 등)은 빼고 계산합니다.</div>` : '<div class="hint">가중치를 0보다 크게 설정하세요.</div>') + list.map((x, i) => `<div class="sc2${x.r.mine ? ' mine' : ''}"><div class="sc2h"><span class="rk">${i + 1}</span><span class="nm">${esc(x.r.name)}</span><b class="pt">${x.score == null ? '—' : Math.round(x.score) + '점'}</b></div><div class="bar"><i style="width:${x.score == null ? 0 : x.score}%"></i></div>` +
     `<div class="mini">${CRIT.map(([k, n]) => `<span>${n} ${x.per[k] == null ? '—' : Math.round(x.per[k])}</span>`).join('')}${x.cover < 0.99 ? `<span style="background:#fff8e6">정보 ${Math.round(x.cover * 100)}%만 반영</span>` : ''}</div></div>`).join('');
   PRO.scoreList = list;
 }
@@ -3183,7 +3219,7 @@ $('cDelSel').onclick = () => {
   const n = PRO.sel.size; if (!n || !confirm(`선택한 후보 ${n}곳을 삭제할까요?`)) return;
   comps = comps.filter(c => !PRO.sel.has(c.id)); PRO.sel = new Set(); saveComps(); renderComps();
 };
-function renderCandBar() {
+function renderCandBarOld() {
   const el = $('candBar'); if (!el) return;
   const n = comps.length, loc = comps.filter(c => c.lat != null).length, an = comps.filter(c => c.analysis).length;
   const g = readMine(), mineOk = g.rent > 0 && areaOf(g) > 0;
@@ -3203,6 +3239,88 @@ afterComps = function () {
   candSelUpdate();
 };
 renderCandBar();
+
+
+/* ═════════ 내 임대 바 · 후보 선택 보기 ═════════ */
+PRO.cand = null;
+const keyOf = (la, lo) => `${la.toFixed(6)},${lo.toFixed(6)}`;
+function resetMine() {
+  MINE_IDS.forEach(id => { const el = $(id); if (!el) return; if (el.tagName === 'SELECT') { const k = [...el.options].findIndex(o => o.defaultSelected); el.selectedIndex = k < 0 ? 0 : k; } else el.value = ['rent', 'fee', 'deposit', 'areaLease', 'areaEx', 'lStart'].includes(id) ? '' : el.defaultValue; });
+  S.home = null; S.homeRaw = null; store.save('ri_home', null);
+  $('homeBld').value = ''; $('homeInfo').textContent = '아직 선택한 건물이 없습니다.';
+  calc(); updatePeekBar(); renderComps(); renderMineBar();
+}
+function renderMineBar() {
+  const el = $('mineBar'); if (!el) return;
+  const g = readMine(), ar = areaOf(g), ok = g.rent > 0 && ar > 0;
+  if (!S.home && !(g.rent > 0)) { el.innerHTML = '<div class="minebar empty"><span>📍 <b>내 임대 정보가 아직 없습니다</b></span><button class="btn-ghost btn-sm" type="button" id="mbGo">입력하기</button></div>'; $('mbGo').onclick = goMine; return; }
+  const f = unitFactor(g), u = unitLabel(g); let eff = null;
+  try { if (ok) eff = calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area: ar, free: g.free}, g).effective; } catch (e) {}
+  const d = deadlineInfo(g);
+  el.innerHTML = `<div class="minebar"><button class="mbmain" type="button" id="mbOpen"><span class="mt">📍 내 임대 · ${esc(S.home ? S.home.title : '건물 미선택')}</span><span class="ms">월 임대료 ${fmt(g.rent)} · 관리비 ${fmt(g.fee)} · 보증금 ${wonShort(g.dep)}원 · ${ar > 0 ? nf.format(Math.round(ar * 10) / 10) + '㎡' : '면적 미입력'}${eff != null ? ` · 실효 NOC <b>${fmt(eff * f)}</b> ${u}` : ''}${d ? ` · 만료 ${ymd(d.end)}` : ''}</span></button><button class="mbx" type="button" id="mbDel" title="내 임대 정보 지우기" aria-label="내 임대 정보 지우기">✕</button></div>`;
+  $('mbOpen').onclick = goMine;
+  $('mbDel').onclick = () => { if (confirm('내 임대 정보(건물 선택과 임대 조건)를 모두 지울까요?\n후보 건물 목록은 그대로 남습니다.')) resetMine(); };
+}
+function goMine() {
+  showTab('noc'); PRO.cand = null;
+  if (S.home) { if (!S.sel || S.sel.key !== S.home.key) choose(S.homeRaw, {peek: true}); else focusPlace({name: S.home.title, address: S.home.name ? S.home.addr : '', lat: S.home.lat, lon: S.home.lon}); }
+  renderCandBar(); const sb = document.querySelector('.sidebar'); if (sb) sb.scrollTo({top: 0, behavior: 'smooth'});
+}
+function viewCand(id) {
+  const c = comps.find(x => x.id === id); if (!c) return;
+  PRO.cand = id;
+  if (c.lat != null) {
+    const raw = {name: c.name, address: c.resolved || c.address || '', road_address: '', building: true, latitude: c.lat, longitude: c.lon};
+    if (!S.sel || S.sel.key !== keyOf(c.lat, c.lon)) choose(raw, {peek: true}); else focusPlace({name: c.name, address: raw.address, lat: c.lat, lon: c.lon});
+  } else { showInfo(c.name, c.address || '', NaN, NaN); L_pick.clearLayers(); }
+  markRow(id); renderCandBar();
+}
+function goCand() {
+  showTab('comp');
+  if (!comps.length) return;
+  if (!comps.some(c => c.id === PRO.cand)) PRO.cand = comps[0].id;
+  viewCand(PRO.cand);
+}
+focusComp = function (id) { viewCand(id); };
+function delCandAsk(id) { const c = comps.find(x => x.id === id); if (c && confirm(`'${c.name}' 후보를 삭제할까요?`)) { if (PRO.cand === id) PRO.cand = null; PRO.sel.delete(id); delComp(id); } }
+function renderCandBar() {
+  const el = $('candBar'); if (!el) return;
+  const n = comps.length, loc = comps.filter(c => c.lat != null).length, an = comps.filter(c => c.analysis).length;
+  const g = readMine(), mineOk = g.rent > 0 && areaOf(g) > 0;
+  if (PRO.cand && !comps.some(c => c.id === PRO.cand)) PRO.cand = null;
+  $('candCount').textContent = n ? `(${n}곳)` : '';
+  PRO.sel = new Set([...PRO.sel].filter(id => comps.some(c => c.id === id)));
+  if (!n) { el.className = 'candbar empty'; el.innerHTML = '<b>아직 후보가 없습니다.</b><br>아래 <b>후보 추가하기</b>에서 건물을 추가하세요. 가장 쉬운 방법은 <b>“비슷한 건물 찾기”</b>로 후보를 찾은 뒤 임대 조건만 채우는 것입니다.<div class="row" style="margin-top:8px"><button class="btn-ghost btn-sm" type="button" id="cbSim">비슷한 건물 찾기</button><button class="btn-ghost btn-sm" type="button" id="cbMan">직접 입력</button></div>'; $('cbSim').onclick = () => { setAdd('sim'); $('addSeg').scrollIntoView({behavior: 'smooth', block: 'center'}); }; $('cbMan').onclick = () => { setAdd('manual'); $('addSeg').scrollIntoView({behavior: 'smooth', block: 'center'}); }; return; }
+  const sel = comps.find(c => c.id === PRO.cand);
+  let card = '<div class="hint" style="margin:6px 0 10px">후보 이름을 누르면 지도와 역 접근·일조·상권 분석이 <b>그 후보 기준</b>으로 바뀝니다. 이름 옆 ✕로 삭제할 수 있어요.</div>';
+  if (sel) {
+    const f = unitFactor(g), u = unitLabel(g), r = compNoc(sel, g), a = sel.analysis;
+    card = `<div class="candcard"><div class="cch">지금 보는 후보 · <b>${esc(sel.name)}</b></div><div class="ccm">${esc(sel.resolved || sel.address || '')}<br>실효 NOC <b>${fmt(r.effective * f)}</b> ${u} · 임대료 ${fmt(sel.rent)} · 관리비 ${fmt(sel.fee)} · ${sel.area}㎡` +
+      (a ? `<br>가까운 역 ${esc(a.station)} · 도보 ${a.walkTxt || a.walk + '분'}` : sel.lat != null ? '<br>입지 분석 전 (지도 위쪽 “역 접근” 결과는 자동으로 표시됩니다)' : '<br><span style="color:#8a5a00">⚠ 위치를 찾지 못해 지도·통근 분석이 안 됩니다. 주소를 확인해 다시 추가하세요.</span>') + '</div>' +
+      (sel.lat != null ? '<div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="btn-ghost btn-sm" data-go="access" type="button">🚇 역 접근</button><button class="btn-ghost btn-sm" data-go="sun" type="button">☀️ 일조</button><button class="btn-ghost btn-sm" data-go="area" type="button">🏪 상권·유동</button></div>' : '') + '</div>';
+  }
+  el.className = 'candbar';
+  el.innerHTML = `<b>후보 ${n}곳 준비됨</b><div class="chips2"><span>위치 확인 ${loc}/${n}</span><span class="${an < n ? 'warn' : ''}">입지 분석 ${an}/${n}</span>${mineOk ? '' : '<span class="warn">내 임대 조건 미입력</span>'}</div>` +
+    `<div class="candchips">${comps.map(c => `<span class="cc${c.id === PRO.cand ? ' on' : ''}"><button type="button" class="ccn" data-id="${c.id}">${esc(c.name)}${c.lat == null ? ' ⚠' : ''}</button><button type="button" class="ccx" data-id="${c.id}" aria-label="${esc(c.name)} 삭제" title="삭제">✕</button></span>`).join('')}</div>` + card +
+    (mineOk ? '' : '<div style="margin:8px 0;font-size:12px">먼저 <b>NOC 탭</b>에서 내 임대 조건(임대료·면적)을 넣어야 비교가 됩니다. <button class="btn-ghost btn-sm" type="button" id="cbMine">NOC 탭으로</button></div>') +
+    '<button class="next" type="button" id="cbNext">③ 총비용 비교 보기 →</button>';
+  el.querySelectorAll('.ccn').forEach(b => b.onclick = () => viewCand(Number(b.dataset.id)));
+  el.querySelectorAll('.ccx').forEach(b => b.onclick = () => delCandAsk(Number(b.dataset.id)));
+  el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => showTab(b.dataset.go));
+  $('cbNext').onclick = () => showTab('tco'); if ($('cbMine')) $('cbMine').onclick = () => showTab('noc');
+}
+const _afterComps4 = afterComps;
+afterComps = function () { _afterComps4(); renderMineBar(); };
+const _afterCalc4 = afterCalc;
+afterCalc = function (g, r) { _afterCalc4(g, r); renderMineBar(); };
+document.querySelectorAll('.steps button').forEach(b => b.onclick = () => {
+  const st = b.dataset.step;
+  if (st === 'noc') goMine();
+  else if (st === 'comp') goCand();
+  else if (st === 'report') { showTab('tco'); setTimeout(() => $('tcoExport').scrollIntoView({behavior: 'smooth', block: 'center'}), 50); }
+  else showTab(st);
+});
+renderMineBar(); renderCandBar();
 
 </script>
 </body>
