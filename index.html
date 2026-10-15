@@ -323,7 +323,7 @@ button:hover{filter:brightness(1.08)}
 .ktip.light{background:#fff;color:#1f2933;border:1px solid #d5ddd8;font-weight:600}
 .engine-btn{position:absolute;z-index:450;right:14px;bottom:24px;background:#fff;color:#1f2933;border:1px solid var(--line);box-shadow:0 2px 10px #0000002b;border-radius:10px;padding:8px 12px}
 /* ───── v8: 제안서 · 총비용 · 점수표 · 만기 · 4단계 ───── */
-.tabs{grid-template-columns:repeat(6,1fr);gap:5px}
+.tabs{grid-template-columns:repeat(5,1fr);gap:5px}
 .tabs button{font-size:10.5px;padding:7px 0;letter-spacing:-.3px}
 .steps{display:flex;gap:6px;padding:10px 12px 2px}
 .steps button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:1px solid var(--line);color:#3b4650;border-radius:999px;padding:8px 4px;font-size:11.5px;font-weight:700}
@@ -408,6 +408,17 @@ button:hover{filter:brightness(1.08)}
 .ppl{position:absolute;left:0;top:0;transform:translate(-50%,-55%);display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 2px 3px #0004);cursor:pointer}
 .ppl b{margin-top:-4px;background:#fff;border:2px solid #7b3fe4;border-radius:10px;padding:0 6px;font-size:11px;line-height:16px;color:#1f2933}
 .ringlbl{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;background:#7b3fe4;color:#fff;border-radius:9px;padding:1px 7px;font-size:10.5px;font-weight:800}
+
+/* 후보 탭 */
+.candbar{border:2px solid #03c75a;background:#f0fbf4;border-radius:14px;padding:12px 14px;margin-top:10px;font-size:13px;line-height:1.6}
+.candbar.empty{border-color:var(--line);background:#fff}
+.candbar .chips2{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.candbar .chips2 span{background:#fff;border:1px solid #cfe9da;border-radius:999px;padding:2px 9px;font-size:11.5px}
+.candbar .chips2 span.warn{border-color:#e0a02a;background:#fff8e6}
+.candbar .next{width:100%;background:#03c75a;color:#fff;font-size:15px;padding:13px;border-radius:12px}
+.cSel{width:18px;height:18px;vertical-align:-4px;margin-right:4px;accent-color:#03c75a}
+#cList .card .tag2{display:inline-block;font-size:10.5px;background:#fff8e6;border:1px solid #e0a02a;border-radius:999px;padding:0 7px;margin-left:6px;color:#8a5a00}
+#cTools{margin-top:8px}
 </style>
 </head>
 <body>
@@ -449,14 +460,13 @@ button:hover{filter:brightness(1.08)}
   <div class="tabs" role="tablist" aria-label="분석 항목">
     <button role="tab" aria-selected="true" data-tab="noc"><span class="ic">💰</span>NOC</button>
     <button role="tab" aria-selected="false" data-tab="prop"><span class="ic">🧾</span>제안서</button>
-    <button role="tab" aria-selected="false" data-tab="comp"><span class="ic">⚖️</span>비교</button>
+    <button role="tab" aria-selected="false" data-tab="comp"><span class="ic">⚖️</span>후보</button>
     <button role="tab" aria-selected="false" data-tab="tco"><span class="ic">🏆</span>총비용</button>
     <button role="tab" aria-selected="false" data-tab="commute"><span class="ic">👥</span>통근</button>
     <button role="tab" aria-selected="false" data-tab="market"><span class="ic">📈</span>시세</button>
     <button role="tab" aria-selected="false" data-tab="access"><span class="ic">🚇</span>역 접근</button>
     <button role="tab" aria-selected="false" data-tab="sun"><span class="ic">☀️</span>일조</button>
     <button role="tab" aria-selected="false" data-tab="area"><span class="ic">🏪</span>상권·유동</button>
-    <button role="tab" aria-selected="false" data-tab="similar"><span class="ic">🏢</span>유사 건물</button>
     <button role="tab" aria-selected="false" data-tab="ai"><span class="ic">✨</span>AI 질문</button>
   </div>
 
@@ -605,26 +615,6 @@ button:hover{filter:brightness(1.08)}
     <div id="footOut"></div>
   </section>
 
-  <!-- 유사 건물 -->
-  <section class="panel" data-panel="similar" hidden>
-    <h2>내 건물과 비슷한 건물 찾기</h2>
-    <p class="desc">선택한 건물과 입지(역 거리), 상권(300m 안 음식점·카페·은행·공공기관), 규모(건축면적·높이)가 비슷한 오피스 빌딩을 후보 지역에서 찾아 점수를 매깁니다. 임대료는 포함되지 않습니다. 찾은 건물은 비교 목록에 추가해 NOC를 입력하세요.</p>
-    <div class="lbl">후보 지역</div>
-    <div class="chips" id="hubChips"></div>
-    <label class="chip" style="margin-bottom:10px"><input type="checkbox" id="simComps" checked> 내가 입력한 비교 건물도 포함 (NOC 비교용)</label>
-    <div class="fields">
-      <div><label for="simFoot">내 건물 건축면적 (㎡)</label><input id="simFoot" type="number" min="0" placeholder="비우면 OSM 값"></div>
-      <div><label for="simH">내 건물 높이 (m)</label><input id="simH" type="number" min="0" placeholder="비우면 OSM 값"></div>
-    </div>
-    <div class="lbl" style="margin-top:12px">무엇을 더 중요하게 볼까요</div>
-    <div class="wrow"><span>입지(역)</span><input type="range" id="wLoc" min="0" max="3" step="1" value="2"><b id="wLocV">2</b></div>
-    <div class="wrow"><span>상권</span><input type="range" id="wCom" min="0" max="3" step="1" value="2"><b id="wComV">2</b></div>
-    <div class="wrow"><span>규모</span><input type="range" id="wSize" min="0" max="3" step="1" value="1"><b id="wSizeV">1</b></div>
-    <button class="wide btn-lime" id="simBtn">유사 건물 찾기</button>
-    <div id="simStatus" class="status">건물을 먼저 검색해 선택하세요.</div>
-    <div id="peekBar" class="notice" hidden></div>
-    <div id="simOut"></div>
-  </section>
 
   <!-- 제안서 -->
   <section class="panel" data-panel="prop" hidden>
@@ -701,10 +691,23 @@ button:hover{filter:brightness(1.08)}
     <div class="hint">보고서에는 결론, 총비용 표, 점수표, 계약 만기, 건축물대장 정보가 들어갑니다. 인쇄 창에서 'PDF로 저장'을 고르세요.</div>
   </section>
 
-  <!-- 비교 -->
+  <!-- 후보 건물 (유사 건물 찾기 포함) -->
   <section class="panel" data-panel="comp" hidden>
-    <h2>주변 건물 NOC 비교</h2>
-    <p class="desc">잠실, 을지로 등 비교할 건물의 계약 조건을 입력하면 내 건물과 같은 기준으로 NOC를 비교합니다. 목록은 이 브라우저에 저장됩니다.</p>
+    <h2>후보 건물</h2>
+    <p class="desc">옮길 후보 건물을 모으는 곳입니다. <b>① 후보를 추가</b>하고 → <b>② 임대 조건을 채운 뒤</b> → <b>③ 아래 초록 버튼</b>으로 총비용 비교로 넘어가세요. 목록은 이 브라우저에 저장됩니다.</p>
+    <div id="candBar"></div>
+    <div class="lbl" style="margin-top:14px">내 후보 목록 <span id="candCount"></span></div>
+    <div class="row" id="cTools" hidden style="flex-wrap:wrap">
+      <label class="chip" style="margin:0"><input type="checkbox" id="cSelAll"> 전체 선택</label>
+      <button class="btn-ghost btn-sm" id="cDelSel" type="button" disabled>선택한 것 삭제</button>
+      <button class="btn-ghost btn-sm" id="cClear" type="button">전체 삭제</button>
+      <button class="btn-ghost btn-sm" id="cCsv" type="button">CSV 내보내기</button>
+    </div>
+    <div id="cList"></div>
+    <div class="sep"></div>
+    <div class="lbl">후보 추가하기</div>
+    <div class="seg" id="addSeg"><button type="button" data-add="manual" class="on">직접 입력</button><button type="button" data-add="sim">비슷한 건물 찾기</button><button type="button" data-add="file">CSV · 제안서</button></div>
+    <div id="addManual">
     <div class="fields">
       <div class="span2 ac-wrap"><label for="cName">건물명 (입력하면 검색 목록이 나옵니다)</label><input id="cName" placeholder="예: 을지로 ○○빌딩" autocomplete="off"><div class="ac" id="acName" hidden></div></div>
       <div class="span2 ac-wrap"><label for="cAddr">주소 (건물명만 골라도 자동으로 채워집니다)</label><input id="cAddr" placeholder="예: 서울 중구 을지로 100" autocomplete="off"><div class="ac" id="acAddr" hidden></div></div>
@@ -725,25 +728,48 @@ button:hover{filter:brightness(1.08)}
         </div>
       </details>
     </div>
-    <button class="wide btn-lime" id="cAdd">비교 건물 추가</button>
+
+    <button class="wide btn-lime" id="cAdd" type="button">후보 건물 추가</button>
     <div id="cStatus" class="status"></div>
 
+    </div>
+    <div id="addSim" hidden>
+    <div class="hint" style="margin-top:0">선택한 내 건물과 입지·상권·규모가 비슷한 오피스를 찾아 점수를 매깁니다. 마음에 드는 건물은 <b>'비교 목록에 추가'</b>를 눌러 임대 조건을 넣으세요.</div>
+    <div class="lbl">후보 지역</div>
+    <div class="chips" id="hubChips"></div>
+    <label class="chip" style="margin-bottom:10px"><input type="checkbox" id="simComps" checked> 내가 입력한 비교 건물도 포함 (NOC 비교용)</label>
+    <div class="fields">
+      <div><label for="simFoot">내 건물 건축면적 (㎡)</label><input id="simFoot" type="number" min="0" placeholder="비우면 OSM 값"></div>
+      <div><label for="simH">내 건물 높이 (m)</label><input id="simH" type="number" min="0" placeholder="비우면 OSM 값"></div>
+    </div>
+    <div class="lbl" style="margin-top:12px">무엇을 더 중요하게 볼까요</div>
+    <div class="wrow"><span>입지(역)</span><input type="range" id="wLoc" min="0" max="3" step="1" value="2"><b id="wLocV">2</b></div>
+    <div class="wrow"><span>상권</span><input type="range" id="wCom" min="0" max="3" step="1" value="2"><b id="wComV">2</b></div>
+    <div class="wrow"><span>규모</span><input type="range" id="wSize" min="0" max="3" step="1" value="1"><b id="wSizeV">1</b></div>
+    <button class="wide btn-lime" id="simBtn">유사 건물 찾기</button>
+    <div id="simStatus" class="status">건물을 먼저 검색해 선택하세요.</div>
+    <div id="peekBar" class="notice" hidden></div>
+    <div class="row" style="margin-top:6px"><button class="btn-ghost btn-sm" id="simClear" type="button">찾은 결과 지우기</button></div>
+    <div id="simOut"></div>
+
+    </div>
+    <div id="addFile" hidden>
     <div class="row" style="margin-top:10px">
       <button class="btn-ghost btn-sm" id="csvTpl">CSV 양식</button>
       <button class="btn-ghost btn-sm" id="csvBtn">CSV 가져오기</button>
       <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
     </div>
     <div class="hint">중개사 시세표나 부동산원 자료를 CSV로 정리해 한 번에 가져올 수 있습니다. 주소가 없거나 찾지 못하면 건물명으로 위치를 검색합니다 (이름이 겹치면 위치를 확인하세요).</div>
-    <div class="lbl" style="margin-top:12px">비교 범위</div>
+
+    <div class="row" style="margin-top:8px"><button class="btn-ghost" id="goProp" type="button">🧾 제안서(PDF·사진)에서 자동으로 읽기</button></div>
+    <div class="hint">중개사 제안서 파일을 올리면 AI가 임대 조건을 뽑아 후보로 추가해 줍니다.</div>
+    </div>
+    <div class="sep"></div>
+    <div class="lbl">비교 결과</div>
     <select id="cScope"><option value="0">입력한 전체</option><option value="1">내 건물 반경 1km 이내</option><option value="2">내 건물 반경 2km 이내</option><option value="5">내 건물 반경 5km 이내</option></select>
     <div id="cSummary"></div>
     <div id="cBars" class="cmp"></div>
     <div id="cViz"></div>
-    <div id="cList"></div>
-    <div class="row" style="margin-top:12px" id="cTools" hidden>
-      <button class="btn-ghost" id="cCsv">CSV 내보내기</button>
-      <button class="btn-ghost" id="cClear">전체 삭제</button>
-    </div>
   </section>
 
   <!-- AI 질문 -->
@@ -1696,7 +1722,7 @@ function renderComps() {
   const vis = visibleComps();
   V.comps = null; V.compAvgEff = null;
   const empty = html => { $('cSummary').innerHTML = ''; $('cBars').innerHTML = ''; $('cViz').innerHTML = ''; $('cList').innerHTML = html; renderVerdict(); renderNeg(); if (window.afterComps) afterComps(); };
-  if (!comps.length) { empty('<div class="hint">비교 건물이 없습니다. 위에서 건물명을 검색해 추가하거나 CSV로 가져오세요. <button class="btn-ghost btn-sm" id="goSim">유사 건물 탭에서 후보 찾기</button></div>'); const b = $('goSim'); if (b) b.onclick = () => showTab('similar'); return; }
+  if (!comps.length) { empty('<div class="hint">아직 후보 건물이 없습니다. 아래 <b>후보 추가하기</b>에서 직접 입력하거나, 비슷한 건물을 찾아 추가하세요.</div>'); return; }
   if (!vis.length) { empty(`<div class="hint">선택한 범위 안에 좌표가 있는 비교 건물이 없습니다. (전체 ${comps.length}개)</div>`); return; }
   const rows = vis.map(c => ({c, r: compNoc(c, g)}));
   const mine = myArea > 0 ? {c: {name: '내 건물', mine: true}, r: calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area: myArea, free: g.free}, g)} : null;
@@ -1733,8 +1759,8 @@ function renderComps() {
   $('cList').innerHTML = rows.map(({c, r}) => {
     const a = c.analysis;
     const info = a ? `<br>가까운 역 ${esc(a.station)} · 도보 ${a.walkTxt || a.walk + '분'}${a.estimated ? ' (추정)' : ''} · 반경 500m 음식점·카페 ${fmt(a.fb)}개` : '';
-    return `<div class="card" data-id="${c.id}"><div class="t">${esc(c.name)}${c.geoBy === 'name' ? '<span class="tag">이름으로 위치 검색</span>' : ''}</div><div class="m">명목 ${fmt(r.nominal * f)} · 실효 ${fmt(r.effective * f)} ${u}<br>임대료 ${fmt(c.rent)} · 관리비 ${fmt(c.fee)} · 보증금 ${fmt(c.dep)} · ${c.area}㎡${c.free ? ` · 렌트프리 ${c.free}개월` : ''}${extraLine(c)}${ledgerLine(c.ledger)}${info}</div>` +
-      `<div class="row" style="margin-top:8px">${c.lat != null ? `<button class="btn-ghost btn-sm" data-act="an" data-id="${c.id}">입지 분석</button>` : ''}${c.lat != null && FEAT.ledger ? `<button class="btn-ghost btn-sm" data-act="ledger" data-id="${c.id}">건축물대장</button>` : ''}<button class="btn-ghost btn-sm" data-act="del" data-id="${c.id}">삭제</button></div></div>`;
+    return `<div class="card" data-id="${c.id}"><div class="t"><input type="checkbox" class="cSel" data-id="${c.id}" aria-label="선택"> ${esc(c.name)}${c.geoBy === 'name' ? '<span class="tag">이름으로 위치 검색</span>' : ''}</div><div class="m">명목 ${fmt(r.nominal * f)} · 실효 ${fmt(r.effective * f)} ${u}<br>임대료 ${fmt(c.rent)} · 관리비 ${fmt(c.fee)} · 보증금 ${fmt(c.dep)} · ${c.area}㎡${c.free ? ` · 렌트프리 ${c.free}개월` : ''}${extraLine(c)}${ledgerLine(c.ledger)}${info}</div>` +
+      `<div class="row" style="margin-top:8px">${c.lat != null ? `<button class="btn-ghost btn-sm" data-act="an" data-id="${c.id}">입지 분석</button>` : ''}${c.lat != null && FEAT.ledger ? `<button class="btn-ghost btn-sm" data-act="ledger" data-id="${c.id}">건축물대장</button>` : ''}<button class="btn-ghost btn-sm" data-act="del" data-id="${c.id}">🗑 삭제</button></div></div>`;
   }).join('');
   $('cList').querySelectorAll('.card').forEach(el => el.onclick = e => { if (!e.target.closest('button')) focusComp(Number(el.dataset.id)); });
   $('cList').querySelectorAll('button[data-act]').forEach(b => b.onclick = () => b.dataset.act === 'del' ? delComp(Number(b.dataset.id)) : b.dataset.act === 'ledger' ? compLedger(Number(b.dataset.id), b) : analyzeComp(Number(b.dataset.id), b));
@@ -1938,7 +1964,7 @@ function renderSimilar() {
     }
     S.pending = {address: x.c.address || x.c.name, lat: x.c.latitude, lon: x.c.longitude, resolved: x.c.address};
     $('cName').value = x.c.name; $('cAddr').value = S.pending.address;
-    showTab('comp'); $('cRent').focus();
+    showTab('comp'); if (window.setAdd) setAdd('manual'); $('cRent').focus();
     setStatus('cStatus', `'${x.c.name}'의 위치를 채웠습니다. 임대 조건을 입력하고 추가하세요.`);
   });
   renderVerdict(); renderNeg();
@@ -2620,7 +2646,7 @@ function afterCalc(g) { renderDeadline(g); renderWarn(g); renderSteps(); }
 const wonPy = m2 => `${nf.format(Math.round(m2))}㎡ (${nf.format(Math.round(m2 / PY))}평)`;
 function renderLedger(d, err) {
   const el = $('ledgerBox'); if (!el) return;
-  if (!PRO.health.ledger_configured && PRO.health.status) { el.innerHTML = '<div class="hint">건축물대장 자동 조회: 서버 환경변수 <code>BUILDING_API_KEY</code>(공공데이터포털 인증키)를 넣으면 연면적·층수·승강기·주차·사용승인일이 자동으로 채워집니다.</div>'; return; }
+  if (!PRO.health.ledger_configured && PRO.health.status) { el.innerHTML = '<div class="hint">건축물대장 자동 조회는 아직 꺼져 있습니다(선택 기능). data.go.kr에서 “건축HUB 건축물대장정보” 인증키를 받아 Render 환경변수 <code>BUILDING_API_KEY</code>에 넣으면 연면적·층수·승강기·주차·사용승인일이 자동으로 채워집니다. 없어도 다른 기능은 모두 사용할 수 있습니다.</div>'; return; }
   if (err) { el.innerHTML = `<div class="hint err">건축물대장: ${esc(err)}</div>`; return; }
   if (!d) { el.innerHTML = ''; return; }
   const yrs = d.approved && /^\d{8}$/.test(d.approved) ? new Date().getFullYear() - Number(d.approved.slice(0, 4)) : null;
@@ -3133,6 +3159,50 @@ function cmReportHtml() {
   h += `<div class="foot" style="margin-top:6px">이동시간은 행정동 중심점과 건물 사이 직선거리 × 1.3 ÷ 25km/h + 10분(대중교통·환승 가정)으로 계산한 추정값이며 실제와 다를 수 있습니다. 직원 개인 주소는 보고서에 포함되지 않습니다.</div>`;
   return h;
 }
+
+
+/* ═════════ 후보 건물 탭: 진행 안내 · 선택 삭제 · 추가 방식 전환 ═════════ */
+PRO.sel = new Set();
+function setAdd(mode) {
+  document.querySelectorAll('#addSeg button').forEach(b => b.classList.toggle('on', b.dataset.add === mode));
+  $('addManual').hidden = mode !== 'manual'; $('addSim').hidden = mode !== 'sim'; $('addFile').hidden = mode !== 'file';
+}
+document.querySelectorAll('#addSeg button').forEach(b => b.onclick = () => setAdd(b.dataset.add));
+$('goProp').onclick = () => showTab('prop');
+$('simClear').onclick = () => { if (typeof L_sim !== 'undefined') L_sim.clearLayers(); S.sim = null; V.sim = null; V.simWavgEff = null; $('simOut').innerHTML = ''; setStatus('simStatus', '찾은 결과를 지웠습니다. 다시 찾으려면 위 버튼을 누르세요.'); renderVerdict(); renderNeg(); };
+function candSelUpdate() {
+  const ids = [...document.querySelectorAll('#cList .cSel')];
+  ids.forEach(x => { x.checked = PRO.sel.has(Number(x.dataset.id)); });
+  const n = PRO.sel.size;
+  $('cDelSel').disabled = !n; $('cDelSel').textContent = n ? `선택한 ${n}곳 삭제` : '선택한 것 삭제';
+  $('cSelAll').checked = ids.length > 0 && ids.every(x => x.checked);
+}
+$('cList').addEventListener('change', e => { if (!e.target.classList.contains('cSel')) return; const id = Number(e.target.dataset.id); e.target.checked ? PRO.sel.add(id) : PRO.sel.delete(id); candSelUpdate(); });
+$('cSelAll').onchange = () => { PRO.sel = new Set($('cSelAll').checked ? comps.map(c => c.id) : []); candSelUpdate(); };
+$('cDelSel').onclick = () => {
+  const n = PRO.sel.size; if (!n || !confirm(`선택한 후보 ${n}곳을 삭제할까요?`)) return;
+  comps = comps.filter(c => !PRO.sel.has(c.id)); PRO.sel = new Set(); saveComps(); renderComps();
+};
+function renderCandBar() {
+  const el = $('candBar'); if (!el) return;
+  const n = comps.length, loc = comps.filter(c => c.lat != null).length, an = comps.filter(c => c.analysis).length;
+  const g = readMine(), mineOk = g.rent > 0 && areaOf(g) > 0;
+  $('candCount').textContent = n ? `(${n}곳)` : '';
+  PRO.sel = new Set([...PRO.sel].filter(id => comps.some(c => c.id === id)));
+  if (!n) { el.className = 'candbar empty'; el.innerHTML = '<b>아직 후보가 없습니다.</b><br>아래 <b>후보 추가하기</b>에서 건물을 추가하세요. 가장 쉬운 방법은 <b>“비슷한 건물 찾기”</b>로 후보를 찾은 뒤 임대 조건만 채우는 것입니다.<div class="row" style="margin-top:8px"><button class="btn-ghost btn-sm" type="button" id="cbSim">비슷한 건물 찾기</button><button class="btn-ghost btn-sm" type="button" id="cbMan">직접 입력</button></div>'; $('cbSim').onclick = () => { setAdd('sim'); $('addSeg').scrollIntoView({behavior: 'smooth', block: 'center'}); }; $('cbMan').onclick = () => { setAdd('manual'); $('addSeg').scrollIntoView({behavior: 'smooth', block: 'center'}); }; return; }
+  el.className = 'candbar';
+  el.innerHTML = `<b>후보 ${n}곳 준비됨</b><div class="chips2"><span>위치 확인 ${loc}/${n}</span><span class="${an < n ? 'warn' : ''}">입지 분석 ${an}/${n}</span>${mineOk ? '' : '<span class="warn">내 임대 조건 미입력</span>'}</div>` +
+    (mineOk ? '' : '<div style="margin-bottom:8px;font-size:12px">먼저 <b>NOC 탭</b>에서 내 임대 조건(임대료·면적)을 넣어야 비교가 됩니다. <button class="btn-ghost btn-sm" type="button" id="cbMine">NOC 탭으로</button></div>') +
+    '<button class="next" type="button" id="cbNext">③ 총비용 비교 보기 →</button>';
+  $('cbNext').onclick = () => showTab('tco'); if ($('cbMine')) $('cbMine').onclick = () => showTab('noc');
+}
+const _afterComps3 = afterComps;
+afterComps = function () {
+  _afterComps3(); renderCandBar();
+  document.querySelectorAll('#cList .card[data-id]').forEach(card => { const c = comps.find(x => x.id === Number(card.dataset.id)); if (c && c.lat == null) { const t = card.querySelector('.t'); if (t && !t.querySelector('.tag2')) t.insertAdjacentHTML('beforeend', '<span class="tag2">위치 없음</span>'); } });
+  candSelUpdate();
+};
+renderCandBar();
 
 </script>
 </body>
