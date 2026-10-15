@@ -488,6 +488,7 @@ button:hover{filter:brightness(1.08)}
       <button class="btn-lime" id="footBtn">조회</button>
     </div>
     <div id="footStatus" class="status"></div>
+    <div id="travelOut"></div>
     <div id="footOut"></div>
   </section>
 
@@ -787,6 +788,7 @@ const L_comp = L.layerGroup().addTo(map);
 const L_area = L.layerGroup().addTo(map);
 const L_sim = L.layerGroup().addTo(map);
 const L_target = L.layerGroup().addTo(map);   // 검색한 건물 (빨강)
+const L_hot = L.layerGroup().addTo(map);      // 유동인구 기준 장소 + 이동 경로
 const L_pick = L.layerGroup().addTo(map);     // 목록에서 누른 건물 (빨강)
 let marker = null;
 const S = {sel: null, access: null, bld: null, sunDone: false, sim: null, pending: null, areaRadius: 500};
@@ -868,7 +870,7 @@ function choose(raw, opt = {}) {
     .bindTooltip(esc(title), {permanent: true, direction: 'top', offset: [0, -34], className: 'tgt'});
   showInfo(title, item.name ? addr : '', lat, lon);
   L_pick.clearLayers();
-  [L_shadow, L_bld, L_route, L_station].forEach(g => g.clearLayers());
+  [L_shadow, L_bld, L_route, L_station, L_hot].forEach(g => g.clearLayers()); $('travelOut').innerHTML = '';
   clearPlaces();
   if (!opt.peek) { L_sim.clearLayers(); S.sim = null; $('simOut').innerHTML = ''; V.sim = null; V.simWavgEff = null; }
   drawAreaCircle();
@@ -1367,11 +1369,44 @@ async function togglePlaces(code, el) {
 async function loadHotspots() {
   try {
     const d = await api(`/api/hotspots?latitude=${S.sel.lat}&longitude=${S.sel.lon}`);
+    S.hotspots = d.hotspots; drawHotspots();
     $('hotspot').innerHTML = d.hotspots.map(h => `<option value="${esc(h.name)}">${esc(h.name)} · ${(h.distance_m / 1000).toFixed(1)}km</option>`).join('');
     if (!d.configured) setStatus('footStatus', '.env에 SEOUL_API_KEY를 설정하면 조회할 수 있습니다.', true);
     else if (d.hotspots[0].distance_m > 1500) setStatus('footStatus', `가장 가까운 기준 장소가 ${(d.hotspots[0].distance_m / 1000).toFixed(1)}km 떨어져 있어 건물 주변 실제 인구와 차이가 클 수 있습니다.`);
     else setStatus('footStatus', '');
   } catch {}
+}
+function drawHotspots(selected) {
+  L_hot.clearLayers();
+  (S.hotspots || []).forEach(h => {
+    const on = h.name === selected;
+    L.circleMarker([h.latitude, h.longitude], {radius: on ? 9 : 5, color: '#fff', weight: 2, fillColor: on ? '#7b3fe4' : '#a98be0', fillOpacity: .95})
+      .bindPopup(`<b>${esc(h.name)}</b><br>건물에서 직선 ${fmt(h.distance_m)}m<br><a href="#" style="color:#7b3fe4;font-weight:700" onclick="pickHot(${JSON.stringify(h.name).replace(/"/g, '&quot;')});return false">여기까지 거리·시간 보기</a>`).addTo(L_hot);
+  });
+}
+function pickHot(name) { $('hotspot').value = name; showTravel(); loadFootfall(); }
+const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)}시간 ${Math.round(m % 60)}분` : `${Math.round(m)}분`;
+async function showTravel() {
+  const name = $('hotspot').value, h = (S.hotspots || []).find(x => x.name === name);
+  if (!h || !S.sel) return;
+  const key = S.sel.key + '|' + name;
+  $('travelOut').innerHTML = '<div class="hint">이동 거리·시간을 계산하는 중...</div>';
+  try {
+    const d = await api(`/api/travel?latitude=${S.sel.lat}&longitude=${S.sel.lon}&to_latitude=${h.latitude}&to_longitude=${h.longitude}`);
+    if ($('hotspot').value !== name) return;
+    const w = d.walk, c = d.car, est = x => x.estimated ? ' <span class="tag">추정</span>' : '';
+    $('travelOut').innerHTML = `<div class="out"><b>🧭 ${esc(S.sel.name || S.sel.title || '선택 건물')} → ${esc(name)}</b><br>` +
+      `직선거리 <b>${fmt(d.straight_m)}m</b><br>` +
+      `🚶 도보 <b>${fmtMin(w.duration_min)}</b> · ${fmt(w.distance_m)}m${est(w)}<br>` +
+      `🚗 자동차 <b>${fmtMin(c.duration_min)}</b> · ${fmt(c.distance_m)}m${est(c)}` +
+      `<div class="hint" style="margin-top:6px">추정은 직선거리 기반 계산값입니다. 자동차 시간은 교통 상황·신호에 따라 달라지며, 대중교통 시간은 제공하지 않습니다.</div></div>`;
+    drawHotspots(name);
+    const pts = w.path && w.path.length ? w.path : [[S.sel.lat, S.sel.lon], [h.latitude, h.longitude]];
+    L.polyline(pts, {color: '#7b3fe4', weight: 5, opacity: .85, dashArray: w.estimated ? '6 8' : null}).addTo(L_hot);
+    L.marker([h.latitude, h.longitude], {interactive: false, icon: L.divIcon({className: '', iconSize: [0, 0], html: '<span class="pin" style="background:#7b3fe4"></span>'})})
+      .bindTooltip(`${esc(name)} · 도보 ${fmtMin(w.duration_min)}`, {permanent: true, direction: 'top', offset: [0, -8], className: 'tgt'}).addTo(L_hot);
+    map.fitBounds([[S.sel.lat, S.sel.lon], [h.latitude, h.longitude]], {padding: [60, 60]});
+  } catch (e) { $('travelOut').innerHTML = ''; setStatus('footStatus', '이동 시간 조회 오류: ' + e.message, true); }
 }
 const LEVEL_COLOR = {'여유': '#2f9e6a', '보통': '#b8921f', '약간 붐빔': '#e07b2a', '붐빔': '#c2412d'};
 async function loadFootfall() {
@@ -2208,7 +2243,8 @@ MINE_IDS.forEach(id => $(id).addEventListener('change', calc));
 $('accessBtn').onclick = analyzeAccess;
 $('sunBtn').onclick = analyzeSun;
 $('areaBtn').onclick = analyzeArea;
-$('footBtn').onclick = loadFootfall;
+$('footBtn').onclick = () => { showTravel(); loadFootfall(); };
+$('hotspot').onchange = showTravel;
 $('cAdd').onclick = addComp;
 $('simBtn').onclick = findSimilar;
 $('csvTpl').onclick = csvTemplate;

@@ -288,6 +288,42 @@ def get_walk_time(start_x: float, start_y: float, end_x: float, end_y: float):
     return walk_route(start_x, start_y, end_x, end_y)
 
 
+@app.get("/api/travel")
+def travel(latitude: float, longitude: float, to_latitude: float, to_longitude: float):
+    """선택한 건물 → 기준 장소까지 직선거리, 도보, 자동차 소요시간.
+    도보는 카카오 도보 경로, 자동차는 카카오모빌리티 길찾기를 쓰고 실패하면 직선거리 기반 추정값(estimated=true)을 돌려줍니다."""
+    key = ("travel", round(latitude, 5), round(longitude, 5), round(to_latitude, 5), round(to_longitude, 5))
+
+    def run():
+        straight = haversine_m(latitude, longitude, to_latitude, to_longitude)
+        try:
+            walk = walk_route(longitude, latitude, to_longitude, to_latitude)
+        except Exception as e:
+            dist = straight * 1.3
+            walk = {"distance_m": round(dist), "duration_min": round(dist / 75, 1), "path": [], "estimated": True,
+                    "error": getattr(e, "detail", str(e))}
+        car = None
+        try:
+            r = http.get(
+                "https://apis-navi.kakaomobility.com/v1/directions",
+                headers={"Authorization": f"KakaoAK {KAKAO_KEY}"},
+                params={"origin": f"{longitude},{latitude}", "destination": f"{to_longitude},{to_latitude}", "priority": "RECOMMEND"},
+                timeout=15,
+            )
+            route = (r.json().get("routes") or [None])[0] if r.ok else None
+            if route and route.get("result_code") == 0:
+                sm = route["summary"]
+                car = {"distance_m": sm["distance"], "duration_min": round(sm["duration"] / 60, 1), "estimated": False}
+        except Exception:
+            car = None
+        if car is None:
+            dist = straight * 1.4
+            car = {"distance_m": round(dist), "duration_min": round(dist / 333, 1), "estimated": True}
+        return {"straight_m": round(straight), "walk": walk, "car": car}
+
+    return cached(key, 3600, run)
+
+
 def _stations(longitude, latitude, radius):
     data = kakao_get(
         "/v2/local/search/category.json",
