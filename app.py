@@ -206,6 +206,43 @@ def config():
     """화면이 지도 엔진을 고르는 데 쓰는 공개 설정 (JavaScript 키는 도메인으로 제한되는 공개용 키입니다)."""
     return {"kakao_js_key": KAKAO_JS_KEY}
 
+class GeoBatchIn(BaseModel):
+    lines: list[str]
+
+
+@app.post("/api/geocode_batch")
+def geocode_batch(body: GeoBatchIn):
+    """직원 주소 목록 → 행정구역(시도/시군구/동) 이름만 반환. 주소 문자열은 저장·캐시·로그하지 않습니다."""
+    lines = [re.sub(r"\s+", " ", (x or "")).strip() for x in body.lines]
+    lines = lines[:400]
+    if not any(lines):
+        raise HTTPException(400, "주소가 비어 있습니다.")
+
+    def one(q):
+        if not q:
+            return None
+        try:
+            j = kakao_get("/v2/local/search/address.json", {"query": q, "size": 1})
+        except HTTPException:
+            return None
+        docs = j.get("documents") or []
+        if not docs:
+            return None
+        d = docs[0]
+        a = d.get("address") or d.get("road_address") or {}
+        if not a.get("region_2depth_name"):
+            return None
+        return {
+            "sido": a.get("region_1depth_name", ""),
+            "sgg": a.get("region_2depth_name", ""),
+            "dong": a.get("region_3depth_name", ""),
+            "hdong": a.get("region_3depth_h_name", "") or "",
+        }
+
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        res = list(ex.map(one, lines))
+    return {"results": res}
+
 
 @app.get("/api/health")
 def health():
