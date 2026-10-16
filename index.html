@@ -2586,6 +2586,7 @@ function pingHealth(n) { fetch('/api/health').then(r => { if (!r.ok) throw new E
   $('keys').innerHTML = `<i class="${h.kakao_configured ? 'ok' : 'bad'}">카카오 ${h.kakao_configured ? '연결' : '키 없음'}</i><i class="${h.seoul_configured ? 'ok' : 'bad'}">서울시 ${h.seoul_configured ? '연결' : '키 없음'}</i><i class="${h.rone_configured ? 'ok' : 'bad'}">R-ONE ${h.rone_configured ? '연결' : '키 없음'}</i><i class="${h.ledger_configured ? 'ok' : 'bad'}">대장 ${h.ledger_configured ? '연결' : '키 없음'}</i>`;
   setStatus('appStatus', h.kakao_configured ? '건물명이나 주소를 입력하면 목록이 나옵니다.' : '.env에 KAKAO_REST_API_KEY를 설정하세요.', !h.kakao_configured);
 }).catch(() => {
+  if (n === 1) { try { if (!sessionStorage.getItem('ri_clean')) { sessionStorage.setItem('ri_clean', '1'); location.replace(location.origin + location.pathname); return; } } catch (e) {} }   // 주소에 아이디:비번@ 이 섞여 있으면 깨끗한 주소로 한 번 이동
   if (n < 25) {
     $('keys').innerHTML = '<i class="bad">서버 깨우는 중…</i>';
     setStatus('appStatus', `서버를 깨우는 중입니다. 무료 서버는 한동안 쉬었다가 처음 접속하면 30~60초 걸립니다. 자동으로 다시 시도합니다 (${n + 1}/25)`);
