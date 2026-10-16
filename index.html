@@ -471,6 +471,13 @@ button:hover{filter:brightness(1.08)}
 .minecard .mcg em{display:block;font-style:normal;font-size:10px;color:#7a6a58}
 .minecard .mcl{margin-top:10px;font-size:12px;line-height:1.7;border-top:1px dashed #f0d3b4;padding-top:8px}
 @media(max-width:420px){.minecard .mcg{grid-template-columns:repeat(2,1fr)}}
+
+/* 순위 카드: 바로가기 */
+.tcr[data-key],.sc2[data-key]{cursor:pointer}
+.rtag{flex:none;font-size:10.5px;color:#5d6963;background:#f1f3f5;border-radius:999px;padding:1px 7px}
+.acts{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.acts button{background:#fff;border:1px solid #cfd8d2;color:#1f2933;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:700}
+.acts button:hover{border-color:#03c75a;background:#f0fbf4}
 </style>
 </head>
 <body>
@@ -2457,8 +2464,8 @@ function printReport() {
   const g = readMine(), f = unitFactor(g), u = unitLabel(g), area = areaOf(g);
   const r = area > 0 ? calcNoc({rent: g.rent, fee: g.fee, dep: g.dep, area, free: g.free}, g) : null;
   const today = new Date().toLocaleDateString('ko-KR');
-  let h = `<h1>임대차 NOC 비교 리포트</h1><div class="foot" style="margin:0">${today} · ${esc(S.sel ? S.sel.title + (S.sel.name ? ' (' + S.sel.addr + ')' : '') : '선택한 건물 없음')}</div>`;
-  h += `<h2>내 건물</h2><div class="kv"><div>명목 NOC<b>${r ? fmt(r.nominal * f) : '—'}</b>${u}</div><div>실효 NOC<b>${r ? fmt(r.effective * f) : '—'}</b>${u}</div><div>가까운 역<b style="font-size:13px">${esc($('kStation').textContent)}</b>${esc($('kWalk').textContent)}</div><div>입면 평균 직사광<b>${esc($('kSun').textContent)}</b>${esc($('kSunSub').textContent)}</div></div>`;
+  let h = `<h1>임대차 NOC 비교 리포트</h1><div class="foot" style="margin:0">${today} · ${esc(S.home ? S.home.title + (S.home.name ? ' (' + S.home.addr + ')' : '') : '선택한 건물 없음')}</div>`;
+  h += `<h2>내 건물</h2><div class="kv"><div>명목 NOC<b>${r ? fmt(r.nominal * f) : '—'}</b>${u}</div><div>실효 NOC<b>${r ? fmt(r.effective * f) : '—'}</b>${u}</div><div>가까운 역<b style="font-size:13px">${esc(homeK().st)}</b>${esc(homeK().wk)}</div><div>입면 평균 직사광<b>${esc(homeK().sun)}</b>${esc(homeK().sunSub)}</div></div>`;
   h += `<div class="foot">입력: 월 임대료 ${fmt(g.rent)}원 · 관리비 ${fmt(g.fee)}원 · 보증금 ${fmt(g.dep)}원(환산율 ${f1(g.rate * 100)}%) · 임대 ${g.areaLease}㎡ / 전용 ${g.areaEx}㎡ · ${g.term}개월 · 렌트프리 ${g.free}개월 · 인상률 ${f1(g.esc * 100)}%</div>`;
   const vs = [['시장', V.market], ['비교 건물', V.comps], ['유사 건물', V.sim]].filter(x => Number.isFinite(x[1]));
   if (vs.length) h += `<h2>요약</h2><div class="kv">${vs.map(([n, v]) => `<div>${n} 대비<b>${v > 0 ? '▲' : '▼'} ${pct(v)}</b>${v > 5 ? '높음' : v < -5 ? '낮음' : '비슷함'}</div>`).join('')}</div>`;
@@ -2468,7 +2475,7 @@ function printReport() {
   if (vis.length && area > 0) {
     const rows = vis.map(c => ({c, r: compNoc(c, g)})).sort((a, b) => b.r.effective - a.r.effective);
     h += `<h2>비교 건물 (${vis.length}개)</h2><table><tr><th>건물</th><th>명목 NOC</th><th>실효 NOC</th><th>내 건물 대비</th><th>역 · 도보</th></tr>` +
-      `<tr><td><b>내 건물</b></td><td>${fmt(r.nominal * f)}</td><td>${fmt(r.effective * f)}</td><td>—</td><td>${esc($('kStation').textContent)}</td></tr>` +
+      `<tr><td><b>내 건물</b></td><td>${fmt(r.nominal * f)}</td><td>${fmt(r.effective * f)}</td><td>—</td><td>${esc(homeK().st)}</td></tr>` +
       rows.map(({c, r: q}) => `<tr><td>${esc(c.name)}</td><td>${fmt(q.nominal * f)}</td><td>${fmt(q.effective * f)}</td><td>${pct((q.effective / r.effective - 1) * 100)}</td><td>${c.analysis ? esc(c.analysis.station) + ' ' + (c.analysis.walk ?? '—') + '분' : '—'}</td></tr>`).join('') + `</table>`;
   }
   if (S.sim && S.sim.shown && S.sim.shown.length) {
@@ -2874,6 +2881,7 @@ function renderTco() {
   if (!mine) { $('tcoVerdict').innerHTML = ''; out.innerHTML = '<div class="hint">NOC 탭에서 내 임대 조건과 면적을 먼저 입력하세요.</div>'; $('scoreOut').innerHTML = ''; renderSteps(); return; }
   if (rows.length < 2) { $('tcoVerdict').innerHTML = ''; out.innerHTML = `<div class="tcr mine"><div class="t1"><span class="nm">${esc(mine.name)}</span><span class="pa">${fmt(mine.perArea * f)} <small>${u}</small></span></div><div class="t2">${mine.H}개월 총비용 ${wonShort(mine.val)}원</div></div><div class="hint">제안서 탭에서 후보 건물을 읽어 오거나 비교 탭에서 건물을 추가하면 총비용 순위와 결론이 나옵니다.</div>`; $('scoreOut').innerHTML = ''; renderSteps(); return; }
   const best = rows[0];
+  const disp = [mine].concat(rows.filter(r => !r.mine));      // 화면에는 내 임대를 항상 1번으로 둡니다
   const yearSave = r => (mine.perArea - r.perArea) * mine.area * 12;       // 내 면적 기준, 연간 절감(+) / 추가(-)
   const hasExtra = r => r.mine || (r.c && (r.c.fitout || r.c.move || r.c.restore || r.c.ti));
   const missing = rows.filter(r => !r.mine && !hasExtra(r)).length;
@@ -2894,14 +2902,13 @@ function renderTco() {
   $('tcoVerdict').innerHTML = `<div class="vbox">${v}</div>`;
   // 순위 카드
   const leg = `<div class="tleg">${TC.map(([, n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div>`;
-  out.innerHTML = leg + rows.map((r, i) => {
+  out.innerHTML = leg + disp.map((r, i) => {
     const x = r.r, parts = {rent: x.rent, fee: x.fee, dep: x.dep, etc: x.park + x.vat, once: Math.max(0, x.once), restore: x.restore}, tot = Object.values(parts).reduce((a, b) => a + b, 0) || 1;
     const dp = mine && !r.mine ? (r.perArea / mine.perArea - 1) * 100 : null, ys = !r.mine ? yearSave(r) : null;
-    return `<div class="tcr${r.mine ? ' mine' : ''}${i === 0 ? ' best' : ''}" ${r.c ? `data-id="${r.c.id}"` : ''}><div class="t1"><span class="rnk">${i + 1}</span><span class="nm" title="${esc(r.name)}">${esc(r.name)}</span><span class="pa">${fmt(r.perArea * f)} <small style="font-weight:500">${u.replace('원/', '')}</small></span></div>` +
+    return `<div class="tcr${r.mine ? ' mine' : ''}${r === best ? ' best' : ''}" data-key="${r.mine ? 'mine' : r.c ? r.c.id : ''}"><div class="t1"><span class="rnk">${i + 1}</span><span class="nm" title="${esc(r.name)}">${esc(r.name)}</span><span class="rtag">비용 ${rows.indexOf(r) + 1}위</span><span class="pa">${fmt(r.perArea * f)} <small style="font-weight:500">${u.replace('원/', '')}</small></span></div>` +
       `<div class="t2">${r.H}개월 총 <b>${wonShort(r.val)}원</b>${npv ? '(현재가치)' : ''} · 월평균 ${wonShort(r.val / r.H)}원${dp != null ? ` · 현재 대비 <span class="dlt ${dp > 0 ? 'up' : 'dn'}">${pct(dp, 1)}</span> (연 ${ys >= 0 ? '-' : '+'}${wonShort(Math.abs(ys))}원)` : ' · 기준'}${x.once || x.restore ? `<br>일회성: 인테리어·이사 ${wonShort(x.once)}원${x.restore ? ' · 원상복구 ' + wonShort(x.restore) + '원' : ''}` : ''}</div>` +
-      `<div class="stk">${TC.map(([k, n, c]) => parts[k] > 0 ? `<span style="width:${parts[k] / tot * 100}%;background:${c}" title="${n} ${wonShort(parts[k])}원"></span>` : '').join('')}</div></div>`;
+      `<div class="stk">${TC.map(([k, n, c]) => parts[k] > 0 ? `<span style="width:${parts[k] / tot * 100}%;background:${c}" title="${n} ${wonShort(parts[k])}원"></span>` : '').join('')}</div>${actBtns(r)}</div>`;
   }).join('') + `<div class="hint">면적당 비용 = (계약기간 임대료 + 관리비 + 보증금 이자 + 주차 + 부가세 + 인테리어·이사 − TI + 원상복구) ÷ 기간 ÷ 면적. 보증금 이자는 환산율(${f1(g.rate * 100)}%)로 계산합니다${npv ? `, 현재가치는 할인율 ${f1(g.disc * 100)}%` : ''}. 계산 기준일 ${todayStr()}. 입력값 기반 계산이며 계약 판단 전 계약서로 확인하세요.</div>`;
-  out.querySelectorAll('.tcr[data-id]').forEach(el => el.onclick = () => focusComp(Number(el.dataset.id)));
   renderScore(rows);
   renderSteps();
 }
@@ -2933,10 +2940,12 @@ function renderScore(rows) {
     CRIT.forEach(([k]) => { const s = norm[k] ? norm[k](vals[i][k]) : null; per[k] = s; if (s != null && W[k] > 0) { num += W[k] * s; den += W[k]; } });
     return {r, per, score: den > 0 ? num / den : null, cover: wsum > 0 ? den / wsum : 0};
   }).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  list.forEach((x, i) => { x.rank = i + 1; });
+  const pinned = list.filter(x => x.r.mine).concat(list.filter(x => !x.r.mine));     // 내 임대는 항상 1번
   const usable = CRIT.filter(([k]) => norm[k] && W[k] > 0).map(([, n]) => n);
-  $('scoreOut').innerHTML = (usable.length ? `<div class="hint">점수에 반영된 항목: ${usable.join(' · ')}. 데이터가 없는 항목(입지 분석 전 등)은 빼고 계산합니다.</div>` : '<div class="hint">가중치를 0보다 크게 설정하세요.</div>') + list.map((x, i) => `<div class="sc2${x.r.mine ? ' mine' : ''}"><div class="sc2h"><span class="rnk">${i + 1}</span><span class="nm">${esc(x.r.name)}</span><b class="pt">${x.score == null ? '—' : Math.round(x.score) + '점'}</b></div><div class="bar"><i style="width:${x.score == null ? 0 : x.score}%"></i></div>` +
-    `<div class="mini">${CRIT.map(([k, n]) => `<span>${n} ${x.per[k] == null ? '—' : Math.round(x.per[k])}</span>`).join('')}${x.cover < 0.99 ? `<span style="background:#fff8e6">정보 ${Math.round(x.cover * 100)}%만 반영</span>` : ''}</div></div>`).join('');
-  PRO.scoreList = list;
+  $('scoreOut').innerHTML = (usable.length ? `<div class="hint">점수에 반영된 항목: ${usable.join(' · ')}. 데이터가 없는 항목(입지 분석 전 등)은 빼고 계산합니다.</div>` : '<div class="hint">가중치를 0보다 크게 설정하세요.</div>') + pinned.map((x, i) => `<div class="sc2${x.r.mine ? ' mine' : ''}" data-key="${x.r.mine ? 'mine' : x.r.c ? x.r.c.id : ''}"><div class="sc2h"><span class="rnk">${i + 1}</span><span class="nm">${esc(x.r.name)}</span><span class="rtag">점수 ${x.rank}위</span><b class="pt">${x.score == null ? '—' : Math.round(x.score) + '점'}</b></div><div class="bar"><i style="width:${x.score == null ? 0 : x.score}%"></i></div>` +
+    `<div class="mini">${CRIT.map(([k, n]) => `<span>${n} ${x.per[k] == null ? '—' : Math.round(x.per[k])}</span>`).join('')}${x.cover < 0.99 ? `<span style="background:#fff8e6">정보 ${Math.round(x.cover * 100)}%만 반영</span>` : ''}</div>${actBtns(x.r)}</div>`).join('');
+  PRO.scoreList = pinned;
 }
 CRIT.forEach(([k]) => { $('w_' + k).oninput = () => { PRO.weights[k] = Number($('w_' + k).value); $('wv_' + k).textContent = PRO.weights[k]; store.save('ri_weights', PRO.weights); if (PRO.tcoRows) renderScore(PRO.tcoRows); }; });
 
@@ -2994,8 +3003,8 @@ function tcoReportHtml() {
   const g = readMine(), f = unitFactor(g), u = unitLabel(g), mine = rows.find(r => r.mine);
   let h = `<h2>결론</h2><div class="foot" style="margin:0;font-size:12px;color:#1f2933;line-height:1.7">${$('tcoVerdict').innerHTML.replace(/<ul>[\s\S]*<\/ul>/, '')}</div>`;
   h += `<h2>총비용 비교 (${g.term}개월 기준, 면적당 월 ${u})</h2><table><tr><th>순위</th><th>건물</th><th>면적당 월</th><th>${PRO.tcoRows[0].H}개월 총비용</th><th>현재 대비</th><th>일회성 비용</th></tr>` +
-    rows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.mine ? '<b>' + esc(r.name) + '</b>' : esc(r.name)}</td><td>${fmt(r.perArea * f)}</td><td>${wonShort(r.val)}원</td><td>${mine && !r.mine ? pct((r.perArea / mine.perArea - 1) * 100) : '기준'}</td><td>${wonShort(r.r.once + r.r.restore)}원</td></tr>`).join('') + '</table>';
-  if (PRO.scoreList && PRO.scoreList.some(x => x.score != null)) h += `<h2>종합 점수</h2><table><tr><th>순위</th><th>건물</th><th>총점</th>${CRIT.map(([, n]) => `<th>${n}</th>`).join('')}</tr>` + PRO.scoreList.map((x, i) => `<tr><td>${i + 1}</td><td>${esc(x.r.name)}</td><td>${x.score == null ? '—' : Math.round(x.score)}</td>${CRIT.map(([k]) => `<td>${x.per[k] == null ? '—' : Math.round(x.per[k])}</td>`).join('')}</tr>`).join('') + '</table>';
+    [mine].concat(rows.filter(r => !r.mine)).map((r, i) => `<tr><td>${i + 1}</td><td>${r.mine ? '<b>' + esc(r.name) + '</b>' : esc(r.name)} <small>(비용 ${rows.indexOf(r) + 1}위)</small></td><td>${fmt(r.perArea * f)}</td><td>${wonShort(r.val)}원</td><td>${mine && !r.mine ? pct((r.perArea / mine.perArea - 1) * 100) : '기준'}</td><td>${wonShort(r.r.once + r.r.restore)}원</td></tr>`).join('') + '</table>';
+  if (PRO.scoreList && PRO.scoreList.some(x => x.score != null)) h += `<h2>종합 점수</h2><table><tr><th>순위</th><th>건물</th><th>총점</th>${CRIT.map(([, n]) => `<th>${n}</th>`).join('')}</tr>` + PRO.scoreList.map((x, i) => `<tr><td>${i + 1}</td><td>${esc(x.r.name)} <small>(점수 ${x.rank}위)</small></td><td>${x.score == null ? '—' : Math.round(x.score)}</td>${CRIT.map(([k]) => `<td>${x.per[k] == null ? '—' : Math.round(x.per[k])}</td>`).join('')}</tr>`).join('') + '</table>';
   const d = deadlineInfo(g);
   if (d) h += `<div class="foot">계약 만료 ${ymd(d.end)} · 해지·갱신 통보 기한 ${ymd(d.notice)}</div>`;
   if (PRO.homeLedger) { const l = PRO.homeLedger; h += `<div class="foot">건축물대장(${esc(l.address || '')}): 연면적 ${l.tot_area_m2 ? nf.format(Math.round(l.tot_area_m2)) + '㎡' : '—'} · 지상 ${l.floors_above ?? '—'}/지하 ${l.floors_below ?? '—'}층 · 승강기 ${l.elevators ?? '—'} · 주차 ${l.parking_total ?? '—'} · 사용승인 ${esc(l.approved || '—')} (출처: 국토교통부 건축HUB)</div>`; }
@@ -3367,6 +3376,41 @@ document.querySelectorAll('.steps button').forEach(b => b.onclick = () => {
   else showTab(st);
 });
 renderMineBar(); renderCandBar();
+
+
+/* ═════════ 내 임대 고정(1번) · 건물별 바로가기 · 보고서용 내 건물 정보 ═════════ */
+function snapHome() {
+  if (S.home && S.sel && S.sel.key === S.home.key && !/^(조회|—|역 정보)/.test($('kStation').textContent.trim())) PRO.homeK = {st: $('kStation').textContent, wk: $('kWalk').textContent, sun: $('kSun').textContent, sunSub: $('kSunSub').textContent};
+}
+function homeK() { snapHome(); return PRO.homeK || {st: '—', wk: '', sun: '—', sunSub: ''}; }
+const _choose5 = choose;
+choose = function (raw, opt) { snapHome(); if (!(opt && opt.peek)) PRO.homeK = null; return _choose5(raw, opt); };
+function actBtns(r) {
+  const has = r.mine ? !!S.home : !!(r.c && r.c.lat != null);
+  if (!has) return '<div class="acts"><span class="hint" style="margin:0">위치 정보가 없어 지도 분석은 할 수 없습니다.</span></div>';
+  return '<div class="acts"><button type="button" data-t="access">🚇 역 접근</button><button type="button" data-t="sun">☀️ 일조</button><button type="button" data-t="commute">👥 통근</button><button type="button" data-t="area">🏪 상권·유동</button></div>';
+}
+function focusMine() {
+  if (!S.home) return;
+  if (!S.sel || S.sel.key !== S.home.key) choose(S.homeRaw, {peek: true}); else focusPlace({name: S.home.title, address: S.home.name ? S.home.addr : '', lat: S.home.lat, lon: S.home.lon});
+}
+function goBld(key, tab) {
+  if (key === 'mine') { PRO.cand = null; focusMine(); } else viewCand(Number(key));
+  if (tab === 'commute') CM.bld = String(key);
+  showTab(tab);
+}
+function wireCards(root) {
+  root.addEventListener('click', e => {
+    const card = e.target.closest('[data-key]'); if (!card) return;
+    const key = card.dataset.key; if (!key) return;
+    const b = e.target.closest('.acts button');
+    if (b) { goBld(key, b.dataset.t); return; }
+    if (e.target.closest('button')) return;
+    if (key === 'mine') { PRO.cand = null; focusMine(); } else viewCand(Number(key));
+  });
+}
+wireCards($('tcoTable')); wireCards($('scoreOut'));
+if (PRO.tcoRows) renderTco();
 
 </script>
 </body>
