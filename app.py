@@ -865,12 +865,43 @@ def _is_office_like(doc):
     return bool(OFFICE_NAME_RE.search(name))
 
 
+def _norm_name(x):
+    return re.sub(r"[\s·\-_().,]", "", x or "").casefold()
+
+
 def _name_hit(doc, query):
-    """검색어가 장소 이름에 그대로 들어 있으면(음식점·병원 등 제외) 건물로 보여줍니다. 예: 신향빌라"""
+    """검색어가 장소 이름에 들어 있으면(대소문자·띄어쓰기 무시) 건물로 보여줍니다. 음식점·병원 등은 이름이 거의 같을 때만. 예: 신향빌라, 식물관PH"""
+    import difflib
     cat = doc.get("category_name") or ""
-    if cat.startswith(EXCLUDE_CAT_PREFIX):
+    nn, nq = _norm_name(doc.get("place_name")), _norm_name(query)
+    if not nq:
         return False
-    return query.replace(" ", "") in (doc.get("place_name") or "").replace(" ", "")
+    if cat.startswith(EXCLUDE_CAT_PREFIX):
+        return nn == nq or difflib.SequenceMatcher(None, nn, nq).ratio() >= 0.9
+    return nq in nn
+
+
+def _query_variants(q):
+    """검색 결과가 없을 때 시도할 비슷한 검색어들 (띄어쓰기·대소문자·끝 글자 줄이기)"""
+    q = re.sub(r"\s+", " ", (q or "").strip())
+    out = []
+
+    def add(x):
+        x = x.strip()
+        if len(x) >= 2 and x not in out:
+            out.append(x)
+
+    add(q)
+    spaced = re.sub(r"(?<=[가-힣])(?=[A-Za-z0-9])|(?<=[A-Za-z0-9])(?=[가-힣])", " ", q)
+    add(spaced)
+    add(spaced.upper())
+    add(q.upper())
+    add(q.replace(" ", ""))
+    add(re.sub(r"[^가-힣\s]", "", q))
+    base = q.replace(" ", "")
+    for k in (len(base) - 1, len(base) - 2, len(base) - 3):
+        add(base[:k])
+    return out
 
 
 def _local_xy(lat0, lon0):
@@ -1142,12 +1173,62 @@ def search(query: str = Query(..., min_length=2), mode: str = Query("full", patt
             )
         return out
 
+    def fuzzy_places():
+        """정확히 맞는 건물이 없을 때: 비슷한 검색어로 다시 찾아 이름이 닮은 순으로 보여줍니다."""
+        import difflib
+        variants = _query_variants(query)[1:7]
+        nq = _norm_name(query)
+
+        def one(v):
+            try:
+                return kakao_get("/v2/local/search/keyword.json", {"query": v, "size": 10}).get("documents", [])
+            except HTTPException:
+                return []
+
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            batches = list(ex.map(one, variants))
+        seen, out = set(), []
+        for doc in [d for b in batches for d in b]:
+            if doc.get("id") in seen:
+                continue
+            seen.add(doc.get("id"))
+            nn = _norm_name(doc.get("place_name"))
+            ratio = difflib.SequenceMatcher(None, nn, nq).ratio()
+            contain = bool(nn) and (nq in nn or nn in nq)
+            if ratio < 0.5 and not contain:
+                continue
+            out.append(
+                {
+                    "type": "place",
+                    "id": doc.get("id"),
+                    "name": doc.get("place_name"),
+                    "address": doc.get("address_name"),
+                    "road_address": doc.get("road_address_name") or None,
+                    "category": doc.get("category_name") or "",
+                    "building": True,
+                    "similar": True,
+                    "longitude": float(doc["x"]),
+                    "latitude": float(doc["y"]),
+                    "_r": ratio + (0.3 if contain else 0),
+                }
+            )
+        out.sort(key=lambda r: -r["_r"])
+        for r in out:
+            r.pop("_r", None)
+        return out[:8]
+
     with ThreadPoolExecutor(max_workers=2) as ex:
         f_place = ex.submit(places)
         f_addr = ex.submit(addresses) if mode == "full" else None
         place_list = f_place.result()
         addr_list = f_addr.result() if f_addr else []
-    return {"places": place_list, "addresses": addr_list}
+    note = None
+    if not any(p["building"] for p in place_list):
+        sim = fuzzy_places()
+        if sim:
+            place_list = sim + [p for p in place_list if not p["building"]]
+            note = f"'{query}'와 똑같은 이름은 없어 비슷한 이름 {len(sim)}곳을 보여줍니다."
+    return {"places": place_list, "addresses": addr_list, "note": note}
 
 
 # ──────────────────────────────────────────────────────────────

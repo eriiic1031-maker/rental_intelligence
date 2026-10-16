@@ -1217,9 +1217,10 @@ async function searchAddress() {
   const q = $('addressQuery').value.trim(), box = $('searchResults');
   if (q.length < 2) { setStatus('appStatus', '건물명이나 주소를 두 글자 이상 입력하세요.', true); return; }
   box.innerHTML = '<div class="hint">검색 중...</div>';
-  let places = [], addrs = [];
+  let places = [], addrs = [], note = null;
   try {
     const d = await api('/api/search?mode=full&query=' + encodeURIComponent(q));
+    note = d.note || null;
     places = d.places.map(normItem).filter(x => x.building); addrs = places.length ? [] : d.addresses.map(normItem);
   } catch (e) {
     try { addrs = (await api('/api/address?query=' + encodeURIComponent(q))).map(normItem); }
@@ -1227,7 +1228,7 @@ async function searchAddress() {
   }
   const all = places.concat(addrs);
   if (!all.length) { box.innerHTML = '<div class="hint">건물 검색 결과가 없습니다. 건물명 일부만 쓰거나 도로명·지번 주소로 다시 검색해 보세요.</div>'; setStatus('appStatus', ''); return; }
-  if (all.length === 1) { box.innerHTML = ''; $('addressQuery').value = all[0].name || addrOf(all[0]); choose(all[0]); return; }
+  if (all.length === 1 && !note) { box.innerHTML = ''; $('addressQuery').value = all[0].name || addrOf(all[0]); choose(all[0]); return; }
   box.innerHTML = '';
   const group = (label, list) => {
     if (!list.length) return;
@@ -1243,7 +1244,7 @@ async function searchAddress() {
   };
   group('건물', places);
   group('주소', addrs);
-  setStatus('appStatus', places.length ? `건물 ${all.length}곳을 찾았습니다. 목록에서 선택하세요.` : `건물명은 찾지 못해 주소 ${all.length}건을 보여줍니다.`);
+  setStatus('appStatus', places.length ? (note ? note + ' 목록에서 선택하세요.' : `건물 ${all.length}곳을 찾았습니다. 목록에서 선택하세요.`) : `건물명은 찾지 못해 주소 ${all.length}건을 보여줍니다.`);
 }
 
 /* ───────── NOC ───────── */
