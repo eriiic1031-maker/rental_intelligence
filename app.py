@@ -71,6 +71,8 @@ _rl_lock = threading.Lock()
 
 @app.middleware("http")
 async def basic_auth(request, call_next):
+    if request.url.path == "/healthz":      # 서버 깨우기용 가벼운 주소 (로그인·한도 없이 항상 응답)
+        return Response('{"ok":true}', media_type="application/json")
     if APP_PASSWORD:
         import base64
         import secrets
