@@ -358,7 +358,7 @@ button:hover{filter:brightness(1.08)}
 .tcr.mine{border-color:#e07b2a;background:#fff8f0}
 .tcr.best{border-color:#03c75a}
 .tcr .t1{display:flex;align-items:baseline;gap:8px}
-.tcr .rk{font-weight:800;color:#0b6b34;min-width:18px}
+.tcr .rnk{font-weight:800;color:#fff;background:#03c75a;display:inline-grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;font-size:12px}
 .tcr .nm{flex:1;font-weight:700;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tcr .pa{font-weight:800;font-size:14px}
 .tcr .t2{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5}
@@ -425,7 +425,7 @@ button:hover{filter:brightness(1.08)}
 .sc2{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:#fff}
 .sc2.mine{border-color:#e07b2a;background:#fff8f0}
 .sc2h{display:flex;align-items:center;gap:8px}
-.sc2 .rk{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#03c75a;color:#fff;font-size:12px;font-weight:800}
+.sc2 .rnk{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#03c75a;color:#fff;font-size:12px;font-weight:800}
 .sc2 .nm{flex:1;min-width:0;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sc2 .pt{flex:none;font-size:14px}
 .sc2 .bar{height:9px;background:#eef1f3;border-radius:5px;overflow:hidden;margin-top:8px}
@@ -2897,7 +2897,7 @@ function renderTco() {
   out.innerHTML = leg + rows.map((r, i) => {
     const x = r.r, parts = {rent: x.rent, fee: x.fee, dep: x.dep, etc: x.park + x.vat, once: Math.max(0, x.once), restore: x.restore}, tot = Object.values(parts).reduce((a, b) => a + b, 0) || 1;
     const dp = mine && !r.mine ? (r.perArea / mine.perArea - 1) * 100 : null, ys = !r.mine ? yearSave(r) : null;
-    return `<div class="tcr${r.mine ? ' mine' : ''}${i === 0 ? ' best' : ''}" ${r.c ? `data-id="${r.c.id}"` : ''}><div class="t1"><span class="rk">${i + 1}</span><span class="nm" title="${esc(r.name)}">${esc(r.name)}</span><span class="pa">${fmt(r.perArea * f)} <small style="font-weight:500">${u.replace('원/', '')}</small></span></div>` +
+    return `<div class="tcr${r.mine ? ' mine' : ''}${i === 0 ? ' best' : ''}" ${r.c ? `data-id="${r.c.id}"` : ''}><div class="t1"><span class="rnk">${i + 1}</span><span class="nm" title="${esc(r.name)}">${esc(r.name)}</span><span class="pa">${fmt(r.perArea * f)} <small style="font-weight:500">${u.replace('원/', '')}</small></span></div>` +
       `<div class="t2">${r.H}개월 총 <b>${wonShort(r.val)}원</b>${npv ? '(현재가치)' : ''} · 월평균 ${wonShort(r.val / r.H)}원${dp != null ? ` · 현재 대비 <span class="dlt ${dp > 0 ? 'up' : 'dn'}">${pct(dp, 1)}</span> (연 ${ys >= 0 ? '-' : '+'}${wonShort(Math.abs(ys))}원)` : ' · 기준'}${x.once || x.restore ? `<br>일회성: 인테리어·이사 ${wonShort(x.once)}원${x.restore ? ' · 원상복구 ' + wonShort(x.restore) + '원' : ''}` : ''}</div>` +
       `<div class="stk">${TC.map(([k, n, c]) => parts[k] > 0 ? `<span style="width:${parts[k] / tot * 100}%;background:${c}" title="${n} ${wonShort(parts[k])}원"></span>` : '').join('')}</div></div>`;
   }).join('') + `<div class="hint">면적당 비용 = (계약기간 임대료 + 관리비 + 보증금 이자 + 주차 + 부가세 + 인테리어·이사 − TI + 원상복구) ÷ 기간 ÷ 면적. 보증금 이자는 환산율(${f1(g.rate * 100)}%)로 계산합니다${npv ? `, 현재가치는 할인율 ${f1(g.disc * 100)}%` : ''}. 계산 기준일 ${todayStr()}. 입력값 기반 계산이며 계약 판단 전 계약서로 확인하세요.</div>`;
@@ -2934,7 +2934,7 @@ function renderScore(rows) {
     return {r, per, score: den > 0 ? num / den : null, cover: wsum > 0 ? den / wsum : 0};
   }).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
   const usable = CRIT.filter(([k]) => norm[k] && W[k] > 0).map(([, n]) => n);
-  $('scoreOut').innerHTML = (usable.length ? `<div class="hint">점수에 반영된 항목: ${usable.join(' · ')}. 데이터가 없는 항목(입지 분석 전 등)은 빼고 계산합니다.</div>` : '<div class="hint">가중치를 0보다 크게 설정하세요.</div>') + list.map((x, i) => `<div class="sc2${x.r.mine ? ' mine' : ''}"><div class="sc2h"><span class="rk">${i + 1}</span><span class="nm">${esc(x.r.name)}</span><b class="pt">${x.score == null ? '—' : Math.round(x.score) + '점'}</b></div><div class="bar"><i style="width:${x.score == null ? 0 : x.score}%"></i></div>` +
+  $('scoreOut').innerHTML = (usable.length ? `<div class="hint">점수에 반영된 항목: ${usable.join(' · ')}. 데이터가 없는 항목(입지 분석 전 등)은 빼고 계산합니다.</div>` : '<div class="hint">가중치를 0보다 크게 설정하세요.</div>') + list.map((x, i) => `<div class="sc2${x.r.mine ? ' mine' : ''}"><div class="sc2h"><span class="rnk">${i + 1}</span><span class="nm">${esc(x.r.name)}</span><b class="pt">${x.score == null ? '—' : Math.round(x.score) + '점'}</b></div><div class="bar"><i style="width:${x.score == null ? 0 : x.score}%"></i></div>` +
     `<div class="mini">${CRIT.map(([k, n]) => `<span>${n} ${x.per[k] == null ? '—' : Math.round(x.per[k])}</span>`).join('')}${x.cover < 0.99 ? `<span style="background:#fff8e6">정보 ${Math.round(x.cover * 100)}%만 반영</span>` : ''}</div></div>`).join('');
   PRO.scoreList = list;
 }
